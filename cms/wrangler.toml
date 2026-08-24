@@ -8,7 +8,7 @@ compatibility_date = "2025-03-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "newgreen-db"
-database_id = "REPLACE_WITH_CLIENT_D1_DATABASE_ID"
+database_id = "96b562af-fca6-4897-9bfa-dc217c53482a"
 migrations_dir = "migrations"
 
 # ADMIN_SECRET is set as a Worker secret in production:
