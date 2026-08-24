@@ -1,0 +1,38 @@
+name: Deploy Site
+
+# Builds the Next.js site with OpenNext and deploys it to Cloudflare Workers.
+# Runs on Linux (avoids the Windows symlink limitation of OpenNext locally).
+# Auth: the same repo secrets used by the CMS workflow.
+#   CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID
+# The site's own admin secret (CMS_ADMIN_SECRET) is a Worker secret set once
+# with `wrangler secret put`, not here.
+
+on:
+  push:
+    branches: [main, master]
+    paths-ignore:
+      - "cms/**"
+      - "**/*.md"
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install deps
+        run: pnpm install --frozen-lockfile
+
+      - name: Build and deploy (OpenNext)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: pnpm run deploy
