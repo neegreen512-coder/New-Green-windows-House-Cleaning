@@ -394,11 +394,7 @@ export type QuotePayload = {
   notes: string;
 };
 
-export async function submitQuote(_payload: QuotePayload): Promise<{ ok: true }> {
-  // TODO(integration): POST to a secure endpoint / CRM / email provider.
-  await new Promise((r) => setTimeout(r, 700));
-  return { ok: true };
-}
+// submitQuote lives in lib/cms.ts (posts the payload to the CMS worker).
 
 export const quoteOptions = {
   services: ["Window Cleaning", "House Cleaning", "Both"],
@@ -419,11 +415,7 @@ export type ContactPayload = {
   message: string;
 };
 
-export async function submitContact(_payload: ContactPayload): Promise<{ ok: true }> {
-  // TODO(integration): POST to a secure endpoint / email provider.
-  await new Promise((r) => setTimeout(r, 600));
-  return { ok: true };
-}
+// submitContact lives in lib/cms.ts (posts the message to the CMS worker).
 
 /* -------------------------------------------------------------- Pricing ---
    Demonstration fallback used only if the CMS is unreachable. Live packages

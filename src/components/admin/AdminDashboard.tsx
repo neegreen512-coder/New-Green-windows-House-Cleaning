@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { ReviewsPanel } from "./ReviewsPanel";
+import { LeadsPanel } from "./LeadsPanel";
 import { PricingPanel } from "./PricingPanel";
 import { ContentPanel } from "./ContentPanel";
 
 const TABS = [
   { id: "reviews", label: "Reviews" },
+  { id: "leads", label: "Leads" },
   { id: "pricing", label: "Pricing" },
   { id: "content", label: "Content" },
 ] as const;
@@ -42,6 +44,7 @@ export function AdminDashboard() {
 
       <div className="mt-8">
         {tab === "reviews" && <ReviewsPanel />}
+        {tab === "leads" && <LeadsPanel />}
         {tab === "pricing" && <PricingPanel />}
         {tab === "content" && <ContentPanel />}
       </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { submitContact } from "@/lib/site";
+import { submitContact } from "@/lib/cms";
 
 type State = "idle" | "sending" | "done" | "error";
 

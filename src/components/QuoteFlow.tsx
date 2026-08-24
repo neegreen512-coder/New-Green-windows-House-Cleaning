@@ -4,7 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Check } from "@phosphor-icons/react/dist/ssr";
-import { quoteOptions, submitQuote, business, type QuotePayload } from "@/lib/site";
+import { quoteOptions, business, type QuotePayload } from "@/lib/site";
+import { submitQuote } from "@/lib/cms";
 
 const STEPS = ["Service", "Your home", "Frequency", "Your details", "Review"] as const;
 const EASE = [0.16, 1, 0.3, 1] as const;

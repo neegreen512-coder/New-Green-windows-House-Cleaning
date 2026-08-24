@@ -79,6 +79,59 @@ app.get("/api/content", async (c) => {
   return c.json(ok(Object.fromEntries(results.map((r) => [r.key, r.value]))));
 });
 
+const emailish = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+
+// Public quote request -> stored as a new lead for the owner.
+app.post("/api/quotes", async (c) => {
+  const b = await c.req.json().catch(() => null);
+  if (!b) return c.json({ ok: false, error: "Invalid request." }, 400);
+
+  const name = str(b.name, 80).trim();
+  const email = str(b.email, 120).trim();
+  if (name.length < 2) return c.json({ ok: false, error: "Please add your name." }, 400);
+  if (!emailish(email)) return c.json({ ok: false, error: "Please add a valid email." }, 400);
+
+  const services = Array.isArray(b.services) ? b.services.join(", ") : str(b.services, 200);
+
+  await c.env.DB.prepare(
+    "INSERT INTO quotes (services, property_type, bedrooms, bathrooms, frequency, name, email, phone, address, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+  )
+    .bind(
+      str(services, 200),
+      str(b.propertyType, 40),
+      str(b.bedrooms, 20),
+      str(b.bathrooms, 20),
+      str(b.frequency, 40),
+      name,
+      email,
+      str(b.phone, 40),
+      str(b.address, 200),
+      str(b.notes, 2000)
+    )
+    .run();
+
+  return c.json(ok({ submitted: true }));
+});
+
+// Public contact message -> stored as a new lead for the owner.
+app.post("/api/messages", async (c) => {
+  const b = await c.req.json().catch(() => null);
+  if (!b) return c.json({ ok: false, error: "Invalid request." }, 400);
+
+  const name = str(b.name, 80).trim();
+  const email = str(b.email, 120).trim();
+  const message = str(b.message, 4000).trim();
+  if (name.length < 2) return c.json({ ok: false, error: "Please add your name." }, 400);
+  if (!emailish(email)) return c.json({ ok: false, error: "Please add a valid email." }, 400);
+  if (message.length < 5) return c.json({ ok: false, error: "Please add a message." }, 400);
+
+  await c.env.DB.prepare("INSERT INTO messages (name, email, phone, message) VALUES (?, ?, ?, ?)")
+    .bind(name, email, str(b.phone, 40), message)
+    .run();
+
+  return c.json(ok({ submitted: true }));
+});
+
 /* ------------------------------------------------------------------ Admin
    Gated by a shared secret AND (in production) by Cloudflare Access on the
    route. If ADMIN_SECRET is unset (local dev only) the gate is open. */
@@ -134,6 +187,50 @@ admin.patch("/reviews/:id", async (c) => {
 
 admin.delete("/reviews/:id", async (c) => {
   await c.env.DB.prepare("DELETE FROM reviews WHERE id = ?").bind(c.req.param("id")).run();
+  return c.json(ok({ deleted: true }));
+});
+
+// Quote requests (leads)
+admin.get("/quotes", async (c) => {
+  const { results } = await c.env.DB.prepare(
+    "SELECT * FROM quotes ORDER BY (status = 'new') DESC, created_at DESC"
+  ).all();
+  return c.json(ok(results));
+});
+
+admin.patch("/quotes/:id", async (c) => {
+  const b = await c.req.json().catch(() => ({}));
+  const status = b.status === "handled" ? "handled" : "new";
+  await c.env.DB.prepare("UPDATE quotes SET status = ? WHERE id = ?")
+    .bind(status, c.req.param("id"))
+    .run();
+  return c.json(ok({ updated: true }));
+});
+
+admin.delete("/quotes/:id", async (c) => {
+  await c.env.DB.prepare("DELETE FROM quotes WHERE id = ?").bind(c.req.param("id")).run();
+  return c.json(ok({ deleted: true }));
+});
+
+// Contact messages (leads)
+admin.get("/messages", async (c) => {
+  const { results } = await c.env.DB.prepare(
+    "SELECT * FROM messages ORDER BY (status = 'new') DESC, created_at DESC"
+  ).all();
+  return c.json(ok(results));
+});
+
+admin.patch("/messages/:id", async (c) => {
+  const b = await c.req.json().catch(() => ({}));
+  const status = b.status === "handled" ? "handled" : "new";
+  await c.env.DB.prepare("UPDATE messages SET status = ? WHERE id = ?")
+    .bind(status, c.req.param("id"))
+    .run();
+  return c.json(ok({ updated: true }));
+});
+
+admin.delete("/messages/:id", async (c) => {
+  await c.env.DB.prepare("DELETE FROM messages WHERE id = ?").bind(c.req.param("id")).run();
   return c.json(ok({ deleted: true }));
 });
 

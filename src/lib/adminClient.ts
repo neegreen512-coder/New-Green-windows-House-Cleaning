@@ -25,6 +25,32 @@ export type AdminPricing = {
   active: number | boolean;
 };
 
+export type AdminQuote = {
+  id: number;
+  services: string;
+  property_type: string;
+  bedrooms: string;
+  bathrooms: string;
+  frequency: string;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  notes: string;
+  status: string;
+  created_at?: string;
+};
+
+export type AdminMessage = {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  message: string;
+  status: string;
+  created_at?: string;
+};
+
 const base = "/api/admin";
 const jsonHeaders = { "Content-Type": "application/json" };
 
@@ -58,4 +84,14 @@ export const adminApi = {
     fetch(`${base}/content`, { cache: "no-store" }).then(handle),
   putContent: (obj: Record<string, string>) =>
     fetch(`${base}/content`, { method: "PUT", headers: jsonHeaders, body: JSON.stringify(obj) }).then(handle),
+
+  listQuotes: (): Promise<AdminQuote[]> => fetch(`${base}/quotes`, { cache: "no-store" }).then(handle),
+  setQuoteStatus: (id: number, status: string) =>
+    fetch(`${base}/quotes/${id}`, { method: "PATCH", headers: jsonHeaders, body: JSON.stringify({ status }) }).then(handle),
+  deleteQuote: (id: number) => fetch(`${base}/quotes/${id}`, { method: "DELETE" }).then(handle),
+
+  listMessages: (): Promise<AdminMessage[]> => fetch(`${base}/messages`, { cache: "no-store" }).then(handle),
+  setMessageStatus: (id: number, status: string) =>
+    fetch(`${base}/messages/${id}`, { method: "PATCH", headers: jsonHeaders, body: JSON.stringify({ status }) }).then(handle),
+  deleteMessage: (id: number) => fetch(`${base}/messages/${id}`, { method: "DELETE" }).then(handle),
 };

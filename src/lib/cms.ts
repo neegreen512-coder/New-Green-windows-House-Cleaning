@@ -1,5 +1,7 @@
 /** Client for the New Green CMS worker (Hono + Cloudflare D1). */
 
+import type { QuotePayload, ContactPayload } from "@/lib/site";
+
 export const CMS_URL = (process.env.NEXT_PUBLIC_CMS_URL || "http://localhost:8787").replace(/\/$/, "");
 
 export type CmsReview = {
@@ -54,4 +56,24 @@ export async function getPricing(): Promise<CmsPricing[]> {
   const json = await res.json();
   if (!json?.ok) throw new Error("Failed to load pricing");
   return json.data as CmsPricing[];
+}
+
+export async function submitQuote(payload: QuotePayload): Promise<void> {
+  const res = await fetch(`${CMS_URL}/api/quotes`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok || !json?.ok) throw new Error(json?.error || "Could not submit your request.");
+}
+
+export async function submitContact(payload: ContactPayload): Promise<void> {
+  const res = await fetch(`${CMS_URL}/api/messages`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok || !json?.ok) throw new Error(json?.error || "Could not send your message.");
 }

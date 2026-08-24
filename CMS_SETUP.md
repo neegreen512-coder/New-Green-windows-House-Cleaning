@@ -82,11 +82,15 @@ Public (used by the website):
 - `POST /api/reviews` — visitor submits a review (saved as pending)
 - `GET /api/pricing` — active pricing packages
 - `GET /api/content` — editable text blocks
+- `POST /api/quotes` — visitor requests a quote (saved as a new lead)
+- `POST /api/messages` — visitor sends a contact message (saved as a new lead)
 
 Admin (behind Cloudflare Access + `x-cms-secret`):
 - `GET/POST /api/admin/reviews`, `PATCH/DELETE /api/admin/reviews/:id` — moderate, add, approve, delete
 - `GET/POST /api/admin/pricing`, `PUT/DELETE /api/admin/pricing/:id` — manage packages
 - `GET/PUT /api/admin/content` — edit text blocks
+- `GET /api/admin/quotes`, `PATCH/DELETE /api/admin/quotes/:id` — quote request leads
+- `GET /api/admin/messages`, `PATCH/DELETE /api/admin/messages/:id` — contact message leads
 
 ---
 
@@ -107,5 +111,5 @@ read live from this API with a safe static fallback.
 ## Still to come (next steps)
 
 - Optional: R2 bucket for owner-uploaded images
-- Wire the quote and contact forms (`submitQuote` / `submitContact`) to a real
-  endpoint (a worker route or email); they are frontend-only mocks today
+- Optional: email the owner when a new quote or message lead arrives (the leads
+  are already stored in D1 and visible in the /admin Leads tab)
