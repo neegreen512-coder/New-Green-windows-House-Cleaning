@@ -407,3 +407,20 @@ export const quoteOptions = {
   bedrooms: ["Studio", "1", "2", "3", "4", "5+"],
   bathrooms: ["1", "2", "3", "4+"],
 };
+
+/* --------------------------------------------------------------- Contact ---
+   Frontend-only submission seam for the contact page. Wire this to a secure
+   backend route, form provider, or email integration before launch. */
+
+export type ContactPayload = {
+  name: string;
+  email: string;
+  phone: string;
+  message: string;
+};
+
+export async function submitContact(_payload: ContactPayload): Promise<{ ok: true }> {
+  // TODO(integration): POST to a secure endpoint / email provider.
+  await new Promise((r) => setTimeout(r, 600));
+  return { ok: true };
+}
