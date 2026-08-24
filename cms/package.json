@@ -1,0 +1,21 @@
+{
+  "name": "newgreen-cms",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:apply:local": "wrangler d1 migrations apply newgreen-db --local",
+    "db:apply:remote": "wrangler d1 migrations apply newgreen-db --remote",
+    "db:seed:local": "wrangler d1 execute newgreen-db --local --file=./seed.sql",
+    "db:seed:remote": "wrangler d1 execute newgreen-db --remote --file=./seed.sql"
+  },
+  "dependencies": {
+    "hono": "^4.6.14"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241205.0",
+    "wrangler": "^3.95.0"
+  }
+}

@@ -1,0 +1,3 @@
+# Copy this file to `.dev.vars` to test admin auth locally (optional).
+# If unset locally, the admin API is open so you can develop without a secret.
+ADMIN_SECRET=local-dev-secret

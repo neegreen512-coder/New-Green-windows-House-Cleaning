@@ -1,0 +1,16 @@
+name = "newgreen-cms"
+main = "src/index.ts"
+compatibility_date = "2025-03-01"
+
+# Cloudflare D1 database binding.
+# For local dev this works as-is. Before deploying, the client creates the
+# database ( wrangler d1 create newgreen-db ) and pastes the returned id below.
+[[d1_databases]]
+binding = "DB"
+database_name = "newgreen-db"
+database_id = "REPLACE_WITH_CLIENT_D1_DATABASE_ID"
+migrations_dir = "migrations"
+
+# ADMIN_SECRET is set as a Worker secret in production:
+#   wrangler secret put ADMIN_SECRET
+# Locally it is read from a .dev.vars file (see .dev.vars.example).

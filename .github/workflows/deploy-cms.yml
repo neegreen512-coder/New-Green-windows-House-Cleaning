@@ -1,0 +1,54 @@
+name: Deploy CMS
+
+# Deploys the Cloudflare Worker (Hono + D1) in cms/ to the CLIENT's account.
+# Auth comes from two repo secrets (Settings > Secrets and variables > Actions):
+#   CLOUDFLARE_API_TOKEN  - scoped token: Workers Scripts = Edit, D1 = Edit, Account Settings = Read
+#   CLOUDFLARE_ACCOUNT_ID - value from the Cloudflare dashboard sidebar
+#
+# It applies migrations (idempotent) and deploys on every push that touches cms/.
+# It deliberately does NOT run seed.sql: that file wipes the tables, so seeding is
+# a one-time bootstrap done manually, never on deploy.
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "cms/**"
+      - ".github/workflows/deploy-cms.yml"
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: cms/pnpm-lock.yaml
+
+      - name: Install CMS deps
+        working-directory: cms
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply D1 migrations (remote)
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: cms
+          command: d1 migrations apply newgreen-db --remote
+
+      - name: Deploy Worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: cms
+          command: deploy
