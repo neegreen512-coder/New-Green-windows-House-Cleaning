@@ -27,7 +27,7 @@ Do these on the **client's** Cloudflare + GitHub. Send me the values marked
 | 4 | **D1 database** | `wrangler d1 create newgreen-db` → copy the `database_id` | Paste into `cms/wrangler.toml` (`database_id`) → give me if you want me to paste it |
 | 5 | **Admin secret** | Generate a random string: `openssl rand -hex 32` | `cd cms && wrangler secret put ADMIN_SECRET` (paste when prompted), and set the same value as a Pages env var `CMS_ADMIN_SECRET` |
 | 6 | **GitHub repo** | Create a repo on the client's GitHub, push this project | Connect it to Cloudflare Pages + Workers |
-| 7 | **Cloudflare Access** | Zero Trust → Access → Applications → protect the `/admin` path, allow the owner's email | Owner logs in with email one-time-code |
+| 7 | **Cloudflare Access** | Zero Trust → Access → Applications → protect **both** `/admin` and `/api/admin/*`, allow the owner's email | Owner logs in with email one-time-code |
 | 8 | **Worker URL** | After the first `wrangler deploy`, Cloudflare prints the Worker URL | Set as website env var `NEXT_PUBLIC_CMS_URL` |
 
 **The only true "API key" is #3** (the Cloudflare API Token). Items 2 and 5 are
@@ -90,8 +90,22 @@ Admin (behind Cloudflare Access + `x-cms-secret`):
 
 ---
 
+## Admin screen (built)
+
+The website now includes an `/admin` dashboard (reviews queue, pricing editor,
+content editor). It never holds the admin secret: the browser calls a same-origin
+Next proxy at `/api/admin/*` (`src/app/api/admin/[...path]/route.ts`), which
+injects `CMS_ADMIN_SECRET` server-side and forwards to this worker's admin API.
+
+**Security (important):** because the proxy adds the secret for any caller, the
+secret alone does not protect the admin. In production you MUST put Cloudflare
+Access in front of **both** `/admin` and `/api/admin/*` (see row 7 above). Set
+`CMS_ADMIN_SECRET` as a server-side env var on the website (Pages) project, equal
+to the worker's `ADMIN_SECRET`. The website's testimonials and pricing already
+read live from this API with a safe static fallback.
+
 ## Still to come (next steps)
 
-- The `/admin` screen in the website (reviews queue, pricing editor, content editor)
-- Wire the website's testimonials + pricing to read from this API (with a safe fallback)
 - Optional: R2 bucket for owner-uploaded images
+- Wire the quote and contact forms (`submitQuote` / `submitContact`) to a real
+  endpoint (a worker route or email); they are frontend-only mocks today

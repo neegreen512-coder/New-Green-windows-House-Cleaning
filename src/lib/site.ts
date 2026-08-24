@@ -424,3 +424,58 @@ export async function submitContact(_payload: ContactPayload): Promise<{ ok: tru
   await new Promise((r) => setTimeout(r, 600));
   return { ok: true };
 }
+
+/* -------------------------------------------------------------- Pricing ---
+   Demonstration fallback used only if the CMS is unreachable. Live packages
+   are served from the CMS (Cloudflare D1) and managed from the admin. */
+
+export type PricingPackage = {
+  name: string;
+  blurb: string;
+  price: string;
+  unit: string;
+  features: string[];
+  featured: boolean;
+};
+
+export const pricingFallback: PricingPackage[] = [
+  {
+    name: "Window Cleaning",
+    blurb: "Interior and exterior glass done right.",
+    price: "Custom quote",
+    unit: "per visit",
+    features: [
+      "Interior + exterior glass",
+      "Frames, sills and tracks",
+      "Screens on request",
+      "Streak-free finish",
+    ],
+    featured: false,
+  },
+  {
+    name: "House Cleaning",
+    blurb: "Dependable, detailed whole-home cleaning.",
+    price: "Custom quote",
+    unit: "per visit",
+    features: [
+      "Kitchens and bathrooms",
+      "Dusting and floors",
+      "One-time or recurring",
+      "Products chosen for your home",
+    ],
+    featured: true,
+  },
+  {
+    name: "Deep Cleaning",
+    blurb: "A thorough, room-by-room reset.",
+    price: "Custom quote",
+    unit: "per visit",
+    features: [
+      "Detailed degrease and descale",
+      "Edges, baseboards, corners",
+      "Interior window glass",
+      "Fixture detailing",
+    ],
+    featured: false,
+  },
+];

@@ -37,3 +37,21 @@ export async function submitReview(input: ReviewInput): Promise<void> {
   const json = await res.json().catch(() => ({}));
   if (!res.ok || !json?.ok) throw new Error(json?.error || "Could not submit your review.");
 }
+
+export type CmsPricing = {
+  id: number;
+  name: string;
+  blurb: string;
+  price: string;
+  unit: string;
+  features: string[];
+  featured: boolean;
+  sort: number;
+};
+
+export async function getPricing(): Promise<CmsPricing[]> {
+  const res = await fetch(`${CMS_URL}/api/pricing`, { cache: "no-store" });
+  const json = await res.json();
+  if (!json?.ok) throw new Error("Failed to load pricing");
+  return json.data as CmsPricing[];
+}

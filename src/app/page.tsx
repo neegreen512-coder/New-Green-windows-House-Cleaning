@@ -5,6 +5,7 @@ import { DifferenceSection } from "@/components/sections/DifferenceSection";
 import { WhyUs } from "@/components/sections/WhyUs";
 import { CinematicBand } from "@/components/sections/CinematicBand";
 import { Process } from "@/components/sections/Process";
+import { Pricing } from "@/components/sections/Pricing";
 import { FeaturedSection } from "@/components/sections/FeaturedSection";
 import { Testimonials } from "@/components/sections/Testimonials";
 import { ServiceAreaSection } from "@/components/sections/ServiceAreaSection";
@@ -40,6 +41,7 @@ export default function HomePage() {
       <WhyUs />
       <CinematicBand />
       <Process />
+      <Pricing />
       <FeaturedSection />
       <Testimonials />
       <ServiceAreaSection />
