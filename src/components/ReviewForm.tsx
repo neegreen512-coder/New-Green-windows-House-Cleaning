@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { Star } from "lucide-react";
-import { submitReview } from "@/lib/cms";
-import { quoteOptions } from "@/lib/site";
+import { submitReview, uploadImage } from "@/lib/cms";
 
 type State = "idle" | "sending" | "done" | "error";
 
@@ -11,6 +10,28 @@ export function ReviewForm({ onClose }: { onClose?: () => void }) {
   const [rating, setRating] = useState(5);
   const [state, setState] = useState<State>("idle");
   const [error, setError] = useState("");
+  const [avatar, setAvatar] = useState("");
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
+
+  async function handleFiles(files: FileList | null, mode: "avatar" | "photos") {
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    setError("");
+    try {
+      if (mode === "avatar") {
+        setAvatar(await uploadImage(files[0]));
+      } else {
+        const urls: string[] = [];
+        for (const f of Array.from(files).slice(0, 6)) urls.push(await uploadImage(f));
+        setPhotos((prev) => [...prev, ...urls].slice(0, 6));
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload failed.");
+    } finally {
+      setUploading(false);
+    }
+  }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -24,6 +45,8 @@ export function ReviewForm({ onClose }: { onClose?: () => void }) {
         service: String(form.get("service") || ""),
         quote: String(form.get("quote") || ""),
         rating,
+        avatar,
+        photos,
       });
       setState("done");
     } catch (err) {
@@ -127,10 +150,69 @@ export function ReviewForm({ onClose }: { onClose?: () => void }) {
         />
       </label>
 
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <div>
+          <span className="mb-1.5 block text-sm font-medium text-ink">Your photo (optional)</span>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => handleFiles(e.target.files, "avatar")}
+            className="block w-full text-sm text-muted file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:text-sm file:font-medium file:text-brand-800"
+          />
+          {avatar && (
+            <span className="relative mt-2 inline-block">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={avatar} alt="" className="h-16 w-16 rounded-full object-cover ring-1 ring-line" />
+              <button
+                type="button"
+                onClick={() => setAvatar("")}
+                className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-ink text-xs text-white"
+                aria-label="Remove photo"
+              >
+                &times;
+              </button>
+            </span>
+          )}
+        </div>
+        <div>
+          <span className="mb-1.5 block text-sm font-medium text-ink">Photos of your home (optional)</span>
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={(e) => handleFiles(e.target.files, "photos")}
+            className="block w-full text-sm text-muted file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:text-sm file:font-medium file:text-brand-800"
+          />
+          {photos.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {photos.map((p, i) => (
+                <span key={p} className="relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={p} alt="" className="h-16 w-16 rounded-lg object-cover ring-1 ring-line" />
+                  <button
+                    type="button"
+                    onClick={() => setPhotos((prev) => prev.filter((_, j) => j !== i))}
+                    className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-ink text-xs text-white"
+                    aria-label="Remove photo"
+                  >
+                    &times;
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+      {uploading && <p className="mt-2 text-sm text-muted">Uploading photo...</p>}
+
       {state === "error" && <p className="mt-3 text-sm text-[var(--color-error)]">{error}</p>}
 
       <div className="mt-6 flex gap-3">
-        <button type="submit" disabled={state === "sending"} className="btn btn-primary disabled:opacity-60">
+        <button
+          type="submit"
+          disabled={state === "sending" || uploading}
+          className="btn btn-primary disabled:opacity-60"
+        >
           {state === "sending" ? "Sending..." : "Submit review"}
         </button>
         {onClose && (

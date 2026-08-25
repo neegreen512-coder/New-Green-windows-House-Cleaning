@@ -25,6 +25,7 @@ export function Pricing() {
           unit: p.unit,
           features: p.features,
           featured: !!p.featured,
+          image: p.image,
         }));
         setItems(mapped.length ? mapped : FALLBACK);
       })
@@ -55,9 +56,15 @@ export function Pricing() {
                 }`}
               >
                 {p.featured && (
-                  <span className="absolute right-6 top-6 label-mono text-brand-700">
+                  <span className="absolute right-6 top-6 z-10 label-mono text-brand-700">
                     Most popular
                   </span>
+                )}
+                {p.image && (
+                  <div className="mb-5 overflow-hidden rounded-xl">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={p.image} alt={p.name} className="aspect-[16/10] w-full object-cover" />
+                  </div>
                 )}
                 <h3 className="text-[1.3rem] font-semibold text-ink">{p.name}</h3>
                 <p className="mt-2 text-[0.95rem] leading-relaxed text-muted">{p.blurb}</p>

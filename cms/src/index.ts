@@ -26,13 +26,50 @@ const str = (v: unknown, max: number) => (v == null ? "" : String(v)).slice(0, m
 
 app.get("/api/health", (c) => c.json(ok({ status: "up" })));
 
+/* --------------------------------------------------------------- Media (D1)
+   Images are resized small on the client, then stored as BLOBs in D1 and
+   served back here. Avoids needing R2. */
+
+const MAX_UPLOAD = 1_600_000; // ~1.6MB after client-side resize
+
+app.post("/api/upload", async (c) => {
+  const mime = c.req.header("content-type") || "";
+  if (!mime.startsWith("image/")) {
+    return c.json({ ok: false, error: "Only image files are allowed." }, 400);
+  }
+  const buf = await c.req.arrayBuffer();
+  if (buf.byteLength === 0) return c.json({ ok: false, error: "Empty file." }, 400);
+  if (buf.byteLength > MAX_UPLOAD) return c.json({ ok: false, error: "Image is too large." }, 413);
+
+  const id = crypto.randomUUID().replace(/-/g, "");
+  await c.env.DB.prepare("INSERT INTO media (id, mime, data) VALUES (?, ?, ?)")
+    .bind(id, mime, buf)
+    .run();
+
+  return c.json(ok({ url: `${new URL(c.req.url).origin}/media/${id}` }));
+});
+
+app.get("/media/:id", async (c) => {
+  const row = await c.env.DB.prepare("SELECT mime, data FROM media WHERE id = ?")
+    .bind(c.req.param("id"))
+    .first<{ mime: string; data: ArrayBuffer | number[] }>();
+  if (!row) return c.notFound();
+  const bytes = row.data instanceof ArrayBuffer ? new Uint8Array(row.data) : Uint8Array.from(row.data);
+  return new Response(bytes, {
+    headers: {
+      "Content-Type": row.mime || "image/jpeg",
+      "Cache-Control": "public, max-age=31536000, immutable",
+    },
+  });
+});
+
 /* ----------------------------------------------------------------- Public */
 
 app.get("/api/reviews", async (c) => {
   const { results } = await c.env.DB.prepare(
-    "SELECT id, name, context, service, quote, rating, avatar, created_at FROM reviews WHERE status = 'approved' ORDER BY created_at DESC LIMIT 60"
-  ).all();
-  return c.json(ok(results));
+    "SELECT id, name, context, service, quote, rating, avatar, photos, created_at FROM reviews WHERE status = 'approved' ORDER BY created_at DESC LIMIT 60"
+  ).all<Record<string, unknown>>();
+  return c.json(ok(results.map((r) => ({ ...r, photos: safeJson(r.photos) }))));
 });
 
 // Public review submission -> stored as pending for the owner to approve.
@@ -50,10 +87,12 @@ app.post("/api/reviews", async (c) => {
   if (quote.length < 10)
     return c.json({ ok: false, error: "Please write a little more about your experience." }, 400);
 
+  const photos = Array.isArray(body.photos) ? body.photos.slice(0, 6).map((p: unknown) => str(p, 400)) : [];
+
   await c.env.DB.prepare(
-    "INSERT INTO reviews (name, context, service, quote, rating, status) VALUES (?, ?, ?, ?, ?, 'pending')"
+    "INSERT INTO reviews (name, context, service, quote, rating, status, avatar, photos) VALUES (?, ?, ?, ?, ?, 'pending', ?, ?)"
   )
-    .bind(name, context, service, quote, rating)
+    .bind(name, context, service, quote, rating, str(body.avatar, 400), JSON.stringify(photos))
     .run();
 
   return c.json(ok({ submitted: true }));
@@ -61,7 +100,7 @@ app.post("/api/reviews", async (c) => {
 
 app.get("/api/pricing", async (c) => {
   const { results } = await c.env.DB.prepare(
-    "SELECT id, name, blurb, price, unit, features, featured, sort FROM pricing WHERE active = 1 ORDER BY sort ASC"
+    "SELECT id, name, blurb, price, unit, features, featured, sort, image FROM pricing WHERE active = 1 ORDER BY sort ASC"
   ).all<Record<string, unknown>>();
   const data = results.map((r) => ({
     ...r,
@@ -150,8 +189,8 @@ admin.use("*", async (c, next) => {
 admin.get("/reviews", async (c) => {
   const { results } = await c.env.DB.prepare(
     "SELECT * FROM reviews ORDER BY (status = 'pending') DESC, created_at DESC"
-  ).all();
-  return c.json(ok(results));
+  ).all<Record<string, unknown>>();
+  return c.json(ok(results.map((r) => ({ ...r, photos: safeJson(r.photos) }))));
 });
 
 admin.post("/reviews", async (c) => {
@@ -160,8 +199,9 @@ admin.post("/reviews", async (c) => {
   const quote = str(b.quote, 1200).trim();
   if (name.length < 2 || quote.length < 5)
     return c.json({ ok: false, error: "Name and review text are required." }, 400);
+  const photos = Array.isArray(b.photos) ? b.photos.slice(0, 6).map((p: unknown) => str(p, 400)) : [];
   await c.env.DB.prepare(
-    "INSERT INTO reviews (name, context, service, quote, rating, status, avatar) VALUES (?, ?, ?, ?, ?, ?, ?)"
+    "INSERT INTO reviews (name, context, service, quote, rating, status, avatar, photos) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
   )
     .bind(
       name,
@@ -170,7 +210,8 @@ admin.post("/reviews", async (c) => {
       quote,
       clamp(b.rating, 1, 5, 5),
       b.status === "approved" ? "approved" : "pending",
-      str(b.avatar, 300)
+      str(b.avatar, 400),
+      JSON.stringify(photos)
     )
     .run();
   return c.json(ok({ created: true }));
@@ -245,26 +286,7 @@ admin.get("/pricing", async (c) => {
 admin.post("/pricing", async (c) => {
   const b = await c.req.json().catch(() => ({}));
   await c.env.DB.prepare(
-    "INSERT INTO pricing (name, blurb, price, unit, features, featured, sort, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-  )
-    .bind(
-      str(b.name, 80),
-      str(b.blurb, 200),
-      str(b.price, 40),
-      str(b.unit, 40),
-      JSON.stringify(Array.isArray(b.features) ? b.features : []),
-      b.featured ? 1 : 0,
-      clamp(b.sort, 0, 999, 0),
-      b.active === false ? 0 : 1
-    )
-    .run();
-  return c.json(ok({ created: true }));
-});
-
-admin.put("/pricing/:id", async (c) => {
-  const b = await c.req.json().catch(() => ({}));
-  await c.env.DB.prepare(
-    "UPDATE pricing SET name=?, blurb=?, price=?, unit=?, features=?, featured=?, sort=?, active=? WHERE id=?"
+    "INSERT INTO pricing (name, blurb, price, unit, features, featured, sort, active, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
   )
     .bind(
       str(b.name, 80),
@@ -275,6 +297,27 @@ admin.put("/pricing/:id", async (c) => {
       b.featured ? 1 : 0,
       clamp(b.sort, 0, 999, 0),
       b.active === false ? 0 : 1,
+      str(b.image, 400)
+    )
+    .run();
+  return c.json(ok({ created: true }));
+});
+
+admin.put("/pricing/:id", async (c) => {
+  const b = await c.req.json().catch(() => ({}));
+  await c.env.DB.prepare(
+    "UPDATE pricing SET name=?, blurb=?, price=?, unit=?, features=?, featured=?, sort=?, active=?, image=? WHERE id=?"
+  )
+    .bind(
+      str(b.name, 80),
+      str(b.blurb, 200),
+      str(b.price, 40),
+      str(b.unit, 40),
+      JSON.stringify(Array.isArray(b.features) ? b.features : []),
+      b.featured ? 1 : 0,
+      clamp(b.sort, 0, 999, 0),
+      b.active === false ? 0 : 1,
+      str(b.image, 400),
       c.req.param("id")
     )
     .run();

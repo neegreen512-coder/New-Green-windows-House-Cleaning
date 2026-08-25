@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { adminApi, type AdminPricing } from "@/lib/adminClient";
 import { pricingFallback } from "@/lib/site";
+import { uploadImage } from "@/lib/cms";
 
 const fc =
   "w-full rounded-lg border border-line-strong bg-bg px-3 py-2 text-sm text-ink outline-none focus:border-brand-600";
@@ -24,6 +25,7 @@ function readForm(f: FormData): Partial<AdminPricing> {
     featured: f.get("featured") ? 1 : 0,
     active: f.get("active") ? 1 : 0,
     sort: Number(f.get("sort") || 0),
+    image: String(f.get("image") || ""),
   };
 }
 
@@ -101,6 +103,29 @@ export function PricingPanel() {
     }
   }
 
+  async function uploadPackageImage(e: React.ChangeEvent<HTMLInputElement>, id: number) {
+    const file = e.target.files?.[0];
+    const form = e.target.closest("form");
+    if (!file || !form) return;
+    setBusy(id);
+    setErr("");
+    try {
+      const url = await uploadImage(file);
+      await adminApi.updatePricing(id, { ...readForm(new FormData(form)), image: url });
+      await load();
+    } catch (er) {
+      setErr(msg(er));
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  function removePackageImage(e: React.MouseEvent<HTMLButtonElement>, id: number) {
+    const form = e.currentTarget.closest("form");
+    if (!form) return;
+    act(() => adminApi.updatePricing(id, { ...readForm(new FormData(form)), image: "" }), id);
+  }
+
   return (
     <div className="space-y-6">
       {err && <p className="text-sm text-[var(--color-error)]">{err}</p>}
@@ -150,6 +175,33 @@ export function PricingPanel() {
               <Field label="Features (one per line)" className="mt-3">
                 <textarea name="features" defaultValue={p.features.join("\n")} rows={4} className={fc} />
               </Field>
+              <input type="hidden" name="image" defaultValue={p.image || ""} />
+              <div className="mt-3">
+                <span className="mb-1 block text-xs font-medium text-muted">Package image</span>
+                <div className="flex items-center gap-3">
+                  {p.image && (
+                    <span className="relative">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={p.image} alt="" className="h-16 w-24 rounded-lg object-cover ring-1 ring-line" />
+                      <button
+                        type="button"
+                        onClick={(e) => removePackageImage(e, p.id)}
+                        className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-ink text-xs text-white"
+                        aria-label="Remove image"
+                      >
+                        &times;
+                      </button>
+                    </span>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    disabled={busy === p.id}
+                    onChange={(e) => uploadPackageImage(e, p.id)}
+                    className="block text-sm text-muted file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:text-sm file:font-medium file:text-brand-800"
+                  />
+                </div>
+              </div>
               <div className="mt-3 flex flex-wrap items-center gap-4">
                 <label className="flex items-center gap-2 text-sm text-ink">
                   <input type="checkbox" name="featured" defaultChecked={!!p.featured} /> Featured

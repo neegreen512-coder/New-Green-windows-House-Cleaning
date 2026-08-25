@@ -49,6 +49,14 @@ function ReviewCard({ r }: { r: CmsReview }) {
       <blockquote className="mt-4 flex-1 text-[0.95rem] leading-relaxed text-ink/85">
         “{r.quote}”
       </blockquote>
+      {r.photos && r.photos.length > 0 && (
+        <div className="mt-4 flex gap-2">
+          {r.photos.slice(0, 3).map((p) => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img key={p} src={p} alt="" className="h-14 w-14 rounded-lg object-cover ring-1 ring-line" />
+          ))}
+        </div>
+      )}
       {r.service && (
         <div className="mt-5 border-t border-line pt-4">
           <span className="label-mono text-brand-700">{r.service}</span>

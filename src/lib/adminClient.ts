@@ -10,6 +10,7 @@ export type AdminReview = {
   rating: number;
   status: string;
   avatar?: string;
+  photos?: string[];
   created_at?: string;
 };
 
@@ -23,6 +24,7 @@ export type AdminPricing = {
   featured: number | boolean;
   sort: number;
   active: number | boolean;
+  image?: string;
 };
 
 export type AdminQuote = {

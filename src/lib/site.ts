@@ -404,6 +404,7 @@ export type PricingPackage = {
   unit: string;
   features: string[];
   featured: boolean;
+  image?: string;
 };
 
 export const pricingFallback: PricingPackage[] = [

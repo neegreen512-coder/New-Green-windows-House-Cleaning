@@ -148,21 +148,44 @@ export function ReviewsPanel() {
             {items.map((r) => (
               <li key={r.id} className="card p-4">
                 <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-ink">{r.name}</span>
-                      <span
-                        className={`label-mono ${
-                          r.status === "approved" ? "text-brand-700" : "text-[var(--color-warning)]"
-                        }`}
-                      >
-                        {r.status}
-                      </span>
+                  <div className="flex min-w-0 gap-3">
+                    {r.avatar && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={r.avatar}
+                        alt=""
+                        className="h-10 w-10 shrink-0 rounded-full object-cover ring-1 ring-line"
+                      />
+                    )}
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-ink">{r.name}</span>
+                        <span
+                          className={`label-mono ${
+                            r.status === "approved" ? "text-brand-700" : "text-[var(--color-warning)]"
+                          }`}
+                        >
+                          {r.status}
+                        </span>
+                      </div>
+                      <div className="text-xs text-muted">
+                        {[r.context, r.service, `${r.rating} star`].filter(Boolean).join("  ·  ")}
+                      </div>
+                      <p className="mt-2 text-sm leading-relaxed text-ink/85">{r.quote}</p>
+                      {r.photos && r.photos.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {r.photos.map((p) => (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              key={p}
+                              src={p}
+                              alt=""
+                              className="h-14 w-14 rounded-lg object-cover ring-1 ring-line"
+                            />
+                          ))}
+                        </div>
+                      )}
                     </div>
-                    <div className="text-xs text-muted">
-                      {[r.context, r.service, `${r.rating} star`].filter(Boolean).join("  ·  ")}
-                    </div>
-                    <p className="mt-2 text-sm leading-relaxed text-ink/85">{r.quote}</p>
                   </div>
                   <div className="flex shrink-0 flex-col gap-2">
                     {r.status === "pending" ? (

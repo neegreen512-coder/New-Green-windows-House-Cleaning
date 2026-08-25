@@ -12,6 +12,7 @@ export type CmsReview = {
   quote: string;
   rating: number;
   avatar?: string;
+  photos?: string[];
   created_at?: string;
 };
 
@@ -21,6 +22,8 @@ export type ReviewInput = {
   service?: string;
   quote: string;
   rating?: number;
+  avatar?: string;
+  photos?: string[];
 };
 
 export async function getApprovedReviews(): Promise<CmsReview[]> {
@@ -49,6 +52,7 @@ export type CmsPricing = {
   features: string[];
   featured: boolean;
   sort: number;
+  image?: string;
 };
 
 export async function getPricing(): Promise<CmsPricing[]> {
@@ -76,4 +80,40 @@ export async function submitContact(payload: ContactPayload): Promise<void> {
   });
   const json = await res.json().catch(() => ({}));
   if (!res.ok || !json?.ok) throw new Error(json?.error || "Could not send your message.");
+}
+
+/** Resize an image in the browser so uploads stay small. Returns a Blob. */
+async function resizeImage(file: File, maxDim = 1280, quality = 0.72): Promise<Blob> {
+  if (typeof document === "undefined") return file;
+  try {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height));
+    const w = Math.max(1, Math.round(bitmap.width * scale));
+    const h = Math.max(1, Math.round(bitmap.height * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return file;
+    ctx.drawImage(bitmap, 0, 0, w, h);
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, "image/jpeg", quality)
+    );
+    return blob ?? file;
+  } catch {
+    return file;
+  }
+}
+
+/** Upload an image to the CMS (stored in D1). Returns the served URL. */
+export async function uploadImage(file: File): Promise<string> {
+  const blob = await resizeImage(file);
+  const res = await fetch(`${CMS_URL}/api/upload`, {
+    method: "POST",
+    headers: { "Content-Type": blob.type || "image/jpeg" },
+    body: blob,
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok || !json?.ok) throw new Error(json?.error || "Image upload failed.");
+  return json.data.url as string;
 }
