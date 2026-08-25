@@ -2,9 +2,9 @@ import Link from "next/link";
 import { business } from "@/lib/site";
 
 /**
- * New Green mark ("Clear Drop"): a green pane of glass with a water droplet cut
- * out as negative space, so the drop always shows the surface behind it. A small
- * brass gleam sits in the field. Adapts to light and dark surfaces.
+ * New Green mark: the brand "N", a bold capital N with two-tone green strokes
+ * (deep forest verticals, fresh-green diagonal). Adapts to light and dark
+ * surfaces via the `tone` prop.
  */
 export function LogoMark({
   className = "",
@@ -16,8 +16,8 @@ export function LogoMark({
   title?: string;
 }) {
   const isDark = tone === "dark";
-  const pane = isDark ? "#eef4f0" : "#124a37";
-  const gleam = isDark ? "#e0bd72" : "#c0902f";
+  const bar = isDark ? "#eef4f0" : "#124a37";
+  const diag = isDark ? "#6cc070" : "#43a047";
 
   return (
     <svg
@@ -27,17 +27,9 @@ export function LogoMark({
       aria-label={title}
       xmlns="http://www.w3.org/2000/svg"
     >
-      <defs>
-        <mask id="ngDrop">
-          <rect x="2" y="2" width="44" height="44" rx="14" fill="white" />
-          <path
-            d="M24 10 C27.6 15.2 34.5 20.9 34.5 28.5 A10.5 10.5 0 1 1 13.5 28.5 C13.5 20.9 20.4 15.2 24 10 Z"
-            fill="black"
-          />
-        </mask>
-      </defs>
-      <rect x="2" y="2" width="44" height="44" rx="14" fill={pane} mask="url(#ngDrop)" />
-      <circle cx="33.6" cy="13.6" r="2.5" fill={gleam} />
+      <polygon points="11,9 19,9 37,39 29,39" fill={diag} />
+      <polygon points="11,9 19,9 19,39 11,39" fill={bar} />
+      <polygon points="29,9 37,9 37,39 29,39" fill={bar} />
     </svg>
   );
 }

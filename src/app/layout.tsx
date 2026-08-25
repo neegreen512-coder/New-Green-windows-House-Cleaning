@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { Geist, Geist_Mono, Bricolage_Grotesque } from "next/font/google";
+import { Geist, Geist_Mono, Outfit } from "next/font/google";
 import "./globals.css";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -20,7 +20,9 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
-const bricolage = Bricolage_Grotesque({
+// Display / brand font (Outfit). The CSS variable is kept as --font-bricolage
+// so existing references keep working.
+const displayFont = Outfit({
   subsets: ["latin"],
   variable: "--font-bricolage",
   display: "swap",
@@ -66,7 +68,7 @@ export const viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en-CA" className={`${geistSans.variable} ${geistMono.variable} ${bricolage.variable}`}>
+    <html lang="en-CA" className={`${geistSans.variable} ${geistMono.variable} ${displayFont.variable}`}>
       <body>
         <WaterBackground />
         <a

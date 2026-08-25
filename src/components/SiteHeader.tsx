@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { ArrowRight, CaretDown, List, Phone, X } from "@phosphor-icons/react/dist/ssr";
-import { Brand } from "./Brand";
+import { Brand, LogoMark } from "./Brand";
 import { HeaderWaterLogo } from "./HeaderWaterLogo";
 import { business, nav } from "@/lib/site";
 
@@ -59,8 +59,9 @@ export function SiteHeader() {
           }`}
         >
           <div className={`flex items-center justify-between gap-4 ${scrolled ? "h-14" : "h-16"}`}>
-            <Link href="/" aria-label="New Green, home" className="inline-flex items-center">
-              <HeaderWaterLogo className="h-8 w-auto sm:h-9" />
+            <Link href="/" aria-label="New Green, home" className="inline-flex items-center gap-2.5">
+              <LogoMark className="h-9 w-9 shrink-0 sm:h-10 sm:w-10" />
+              <HeaderWaterLogo className="h-9 w-auto sm:h-11" />
             </Link>
 
           {/* Desktop nav */}
