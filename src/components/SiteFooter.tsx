@@ -90,9 +90,6 @@ export function SiteFooter() {
                 <span>{business.hours}</span>
               </li>
             </ul>
-            <Link href="/quote" className="btn btn-accent mt-6">
-              Get a free quote
-            </Link>
           </div>
         </div>
 

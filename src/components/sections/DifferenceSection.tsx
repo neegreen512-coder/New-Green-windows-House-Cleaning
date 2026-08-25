@@ -24,7 +24,14 @@ export function DifferenceSection() {
           </Reveal>
 
           <Reveal delay={0.1}>
-            <BeforeAfter before={images.beforeMessy} after={images.afterClean} />
+            <BeforeAfter
+              before={{
+                src: images.windowsView.src,
+                alt: "The same exterior window looking grimy and streaked before a New Green clean",
+              }}
+              after={images.windowsView}
+              treatBefore
+            />
           </Reveal>
         </div>
       </div>

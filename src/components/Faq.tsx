@@ -4,8 +4,14 @@ import { useState } from "react";
 import { Plus } from "lucide-react";
 import type { Faq as FaqItem } from "@/lib/site";
 
-export function Faq({ items }: { items: FaqItem[] }) {
-  const [open, setOpen] = useState<number | null>(0);
+export function Faq({
+  items,
+  defaultOpen = 0,
+}: {
+  items: FaqItem[];
+  defaultOpen?: number | null;
+}) {
+  const [open, setOpen] = useState<number | null>(defaultOpen);
 
   return (
     <div className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
@@ -24,8 +30,8 @@ export function Faq({ items }: { items: FaqItem[] }) {
               >
                 <span className="text-[1.02rem] font-semibold text-ink">{item.q}</span>
                 <span
-                  className={`grid h-8 w-8 shrink-0 place-items-center rounded-full border border-line text-brand-800 transition-all duration-300 ${
-                    isOpen ? "rotate-45 bg-brand-800 text-white" : "bg-surface"
+                  className={`grid h-8 w-8 shrink-0 place-items-center rounded-full border border-line text-ink transition-all duration-300 ${
+                    isOpen ? "rotate-45 border-ink bg-ink text-white" : "bg-surface"
                   }`}
                 >
                   <Plus className="h-4 w-4" strokeWidth={2.2} />

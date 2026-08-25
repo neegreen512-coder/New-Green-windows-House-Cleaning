@@ -33,7 +33,7 @@ export default async function ServicePage({ params }: PageProps<"/[service]">) {
     <>
       {/* Hero */}
       <section className="relative overflow-hidden">
-        <div className="container-x grid items-center gap-10 pb-16 pt-32 lg:grid-cols-2 lg:gap-16 lg:pb-24 lg:pt-40">
+        <div className="container-x grid items-center gap-10 pb-12 pt-28 lg:grid-cols-2 lg:gap-16 lg:pb-16 lg:pt-32">
           <div className="max-w-xl">
             <span className="eyebrow">{s.shortTitle}</span>
             <h1 className="h1 mt-5">{s.title}</h1>

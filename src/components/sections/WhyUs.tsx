@@ -13,8 +13,8 @@ export function WhyUs() {
             <span className="eyebrow">Why New Green</span>
             <h2 className="h2 mt-4">A service built on the details.</h2>
             <p className="lead mt-5">
-              Owner-operated, and cleaning homes across Mississauga and the GTA for about five years.
-              Here is what you can count on with every visit.
+              Owner-operated, and cleaning homes across Mississauga and the GTA for over fifteen
+              years. Here is what you can count on with every visit.
             </p>
             <Link href="/about" className="group mt-8 inline-flex items-center gap-2 font-semibold text-brand-800">
               More about our approach
@@ -25,9 +25,9 @@ export function WhyUs() {
           <div className="grid gap-x-8 gap-y-9 sm:grid-cols-2">
             {principles.map((p, i) => (
               <Reveal key={p.title} delay={i * 0.06}>
-                <div className="flex flex-col">
-                  <span className="grid h-12 w-12 place-items-center rounded-2xl bg-surface text-brand-700 shadow-[var(--shadow-sm)] ring-1 ring-line">
-                    <Icon name={p.icon} className="h-[1.35rem] w-[1.35rem]" />
+                <div className="group flex flex-col">
+                  <span className="icon-tile h-14 w-14 rounded-2xl transition-transform duration-300 group-hover:-translate-y-1">
+                    <Icon name={p.icon} className="h-[1.6rem] w-[1.6rem]" />
                   </span>
                   <h3 className="mt-4 text-[1.15rem] font-semibold text-ink">{p.title}</h3>
                   <p className="mt-2 text-[0.95rem] leading-relaxed text-muted">{p.body}</p>

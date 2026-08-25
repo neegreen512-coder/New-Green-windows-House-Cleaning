@@ -18,7 +18,7 @@ export const business = {
   phoneHref: "tel:+14375757046",
   email: "support@newgreenwindowsandhousecleaning.ca",
   emailHref: "mailto:support@newgreenwindowsandhousecleaning.ca",
-  address: "3329 McMaster Rd, Mississauga, ON L5L 5H8, Canada",
+  address: "3329 McMaster Rd, Mississauga, ON L5L 5G6, Canada",
   hours: "Monday to Saturday, 8:00 AM to 6:00 PM",
   primaryCity: "Mississauga",
   region: "Canada",
@@ -51,6 +51,25 @@ export const images = {
     src: "/images/hero-clean.webp",
     alt: "A New Green cleaner in a green apron wiping a large window streak-free in a bright living room",
   },
+  // Full-bleed homepage hero: a modern luxury home at golden hour.
+  heroLuxury: {
+    src: photo("photo-1757356657991-c3fd6e2e812e", 2600, 78),
+    alt: "A modern luxury home with walls of glass glowing warm at golden hour",
+  },
+  // Windows before/after: a close, zoomed view of a home's exterior glass.
+  windowsView: {
+    src: photo("photo-1787095481258-71e68568e6a2", 1800, 74),
+    alt: "The exterior glass of a home's window, sunlit and streak-free after a clean",
+  },
+  // About page: a genuine, in-home moment of careful window cleaning.
+  aboutHuman: {
+    src: photo("photo-1581578731565-fcdb660a4639", 1600, 74),
+    alt: "A person carefully cleaning the glass of a sunlit home window by hand",
+  },
+  aboutCraft: {
+    src: photo("photo-1721620780493-e905708eba0b", 1600, 74),
+    alt: "A professional window cleaner detailing the exterior glass of a home",
+  },
   interior: {
     src: "/images/interior.jpg",
     alt: "A freshly cleaned, sunlit living room with an armchair beside a clear window",
@@ -72,12 +91,12 @@ export const images = {
     alt: "A cleaner detailing bathroom and kitchen surfaces during a home visit",
   },
   beforeMessy: {
-    src: "/images/before-messy.jpg",
-    alt: "A cluttered, untidy living room before a clean",
+    src: photo("photo-1641232458416-feace752b346", 1600, 72),
+    alt: "A cluttered, lived-in living room before a clean",
   },
   afterClean: {
-    src: "/images/after-clean.jpg",
-    alt: "A bright, spotless living room after a clean",
+    src: photo("photo-1484101403633-562f891dc89a", 1600, 72),
+    alt: "A bright, spotless, freshly cleaned living room after a clean",
   },
   cleaningAction: {
     src: "/images/dusting.webp",
@@ -188,6 +207,7 @@ export function getService(slug: string) {
 export const nav = {
   services: services.map((s) => ({ label: s.navLabel, href: `/${s.slug}` })),
   main: [
+    { label: "Pricing", href: "/pricing" },
     { label: "About", href: "/about" },
     { label: "Service Areas", href: "/service-areas" },
     { label: "FAQ", href: "/faq" },
@@ -242,46 +262,184 @@ export const processSteps = [
 /* ---------------------------------------------------------------- FAQs ---- */
 
 export type Faq = { q: string; a: string };
+export type FaqCategory = { title: string; items: Faq[] };
 
-export const faqs: Faq[] = [
+export const faqCategories: FaqCategory[] = [
   {
-    q: "How much does window or house cleaning cost?",
-    a: "It depends on your home's size, which services you choose, and how often we visit. Send us the details and you get a clear price before anything is booked, with no surprises on the day.",
+    title: "Pricing & booking",
+    items: [
+      {
+        q: "How much does window or house cleaning cost?",
+        a: "It depends on your home's size, which services you choose, and how often we visit. Send us the details and you get a clear price before anything is booked, with no surprises on the day.",
+      },
+      {
+        q: "How do I book?",
+        a: "Start by requesting a free quote online. Once you're happy with the estimate, we'll help you choose a date and confirm the details. The whole thing takes a few minutes.",
+      },
+      {
+        q: "Do you offer one-time and recurring cleaning?",
+        a: "Both. Book a one-time clean whenever you need it, or set up a recurring weekly, bi-weekly, or monthly plan for a consistently clean home.",
+      },
+      {
+        q: "Is a recurring plan cheaper than a one-time visit?",
+        a: "Yes. Recurring visits keep a home in good shape, so each visit takes less time than a one-off. That saving is passed on, so a weekly or bi-weekly plan costs less per visit than a single clean.",
+      },
+      {
+        q: "How and when do I pay?",
+        a: "You pay after the visit, once you have seen the result. We'll confirm the accepted payment methods when we book, and there is never a charge before the work is done.",
+      },
+      {
+        q: "What if I need to reschedule or cancel?",
+        a: "Life happens. Just give us reasonable notice and we will move your visit to another day at no charge. If you need to cancel a recurring plan, you can pause or stop it any time.",
+      },
+    ],
   },
   {
-    q: "Do you clean the inside and outside of windows?",
-    a: "Yes. We can clean interior and exterior glass, along with frames, sills, and tracks where accessible. Let us know what you'd like included when you request a quote.",
+    title: "What we clean",
+    items: [
+      {
+        q: "Do you clean the inside and outside of windows?",
+        a: "Yes. We can clean interior and exterior glass, along with frames, sills, and tracks where accessible. Let us know what you'd like included when you request a quote.",
+      },
+      {
+        q: "What is included in a standard house clean?",
+        a: "Kitchens and bathrooms, dusting and cobweb removal, floors vacuumed and mopped, and living areas and bedrooms tidied. Tell us your priorities and we'll tailor the visit to your home.",
+      },
+      {
+        q: "What is the difference between a regular clean and a deep clean?",
+        a: "A regular clean keeps an already-tidy home fresh. A deep clean is a thorough, room-by-room reset that reaches build-up, edges, and detail work a routine pass skips, ideal as a first visit or before hosting.",
+      },
+      {
+        q: "Is there anything you don't clean?",
+        a: "For safety we skip exterior work at height beyond what our equipment safely allows, and we don't move heavy furniture or handle biohazards. If you're unsure about something specific, just ask and we'll be straight with you.",
+      },
+    ],
   },
   {
-    q: "Do you bring your own supplies and equipment?",
-    a: "Yes. Our team arrives with the products and equipment needed for your service. If you'd prefer we use specific products in your home, just let us know.",
+    title: "On the day",
+    items: [
+      {
+        q: "Do you bring your own supplies and equipment?",
+        a: "Yes. Our team arrives with the products and equipment needed for your service. If you'd prefer we use specific products in your home, just let us know.",
+      },
+      {
+        q: "Do I need to be home during the cleaning?",
+        a: "It's entirely up to you. Many customers provide access instructions and go about their day; others prefer to be home. We'll confirm the arrangement that suits you.",
+      },
+      {
+        q: "How long does a visit take?",
+        a: "It depends on the size of your home and the service. We'll give you a realistic time window when we quote, and we never rush the details to beat the clock.",
+      },
+      {
+        q: "Will it be the same cleaner each time?",
+        a: "Wherever we can, yes. We believe a familiar face who already knows your home and how you like it makes for a better clean than a rotating crew of strangers.",
+      },
+    ],
   },
   {
-    q: "Do I need to be home during the cleaning?",
-    a: "It's entirely up to you. Many customers provide access instructions and go about their day; others prefer to be home. We'll confirm the arrangement that suits you.",
-  },
-  {
-    q: "Do you offer one-time and recurring cleaning?",
-    a: "Both. Book a one-time clean whenever you need it, or set up a recurring weekly, bi-weekly, or monthly plan for a consistently clean home.",
-  },
-  {
-    q: "What areas do you serve?",
-    a: "We serve Mississauga and surrounding communities across the GTA. Check our Service Areas page or ask when you request a quote, and we'll confirm whether we cover your neighbourhood.",
-  },
-  {
-    q: "How do I book?",
-    a: "Start by requesting a free quote online. Once you're happy with the estimate, we'll help you choose a date and confirm the details.",
+    title: "Trust & peace of mind",
+    items: [
+      {
+        q: "Are you insured, and are your cleaners background-checked?",
+        a: "Yes to both. We are owner-operated, insured, and bonded, and every cleaner is background-checked before they ever set foot in a customer's home.",
+      },
+      {
+        q: "Are your products safe for kids and pets?",
+        a: "Yes. We use eco-friendly products chosen to be kind to kids, pets, and your surfaces. If anyone in your home has sensitivities, tell us and we'll adjust.",
+      },
+      {
+        q: "What if I'm not happy with the clean?",
+        a: "Tell us and we will come back to put it right. That make-it-right guarantee is on every visit, and it's the promise that keeps people with us year after year.",
+      },
+      {
+        q: "What areas do you serve?",
+        a: "We serve Mississauga and surrounding communities across the GTA. Check our Service Areas page or ask when you request a quote, and we'll confirm whether we cover your neighbourhood.",
+      },
+    ],
   },
 ];
 
+// Flat list (used by the homepage-less consumers and the pricing page).
+export const faqs: Faq[] = faqCategories.flatMap((c) => c.items);
+
 /* ------------------------------------------------------- Service areas ---- */
+
+export type ServiceArea = {
+  name: string;
+  landmark: string;
+  blurb: string;
+  image: { src: string; alt: string };
+};
 
 export const serviceAreas = {
   intro:
     "New Green proudly serves homes across Mississauga and the surrounding region. Don't see your community listed? Ask us, our service area is growing.",
   primary: "Mississauga",
-  areas: ["Mississauga", "Oakville", "Brampton", "Etobicoke", "Milton", "Burlington"],
+  areas: [
+    {
+      name: "Mississauga",
+      landmark: "the Absolute World towers",
+      blurb:
+        "Our home base. From Port Credit to Square One, Mississauga is where we started and where most of our regulars are.",
+      image: {
+        src: photo("photo-1726286733742-cd6149ff1184", 1200, 72),
+        alt: "The curving Absolute World towers, an icon of the Mississauga skyline",
+      },
+    },
+    {
+      name: "Oakville",
+      landmark: "the harbour lighthouse",
+      blurb:
+        "Lakeside homes and heritage streets near the harbour, where clean glass and a bright view really earn their keep.",
+      image: {
+        src: photo("photo-1587577207520-177ccd2cb8ea", 1200, 72),
+        alt: "The red and white lighthouse at Oakville harbour on Lake Ontario",
+      },
+    },
+    {
+      name: "Brampton",
+      landmark: "Gage Park & the trails",
+      blurb:
+        "Growing family neighbourhoods and leafy trails. A city of busy households that value a home kept effortlessly clean.",
+      image: {
+        src: photo("photo-1580855354769-3009c336ae65", 1200, 72),
+        alt: "A wooden footbridge among autumn trees on a Brampton parkland trail",
+      },
+    },
+    {
+      name: "Etobicoke",
+      landmark: "the Humber Bay waterfront",
+      blurb:
+        "Condo towers and lakeshore houses along Humber Bay, where floor-to-ceiling glass deserves a streak-free finish.",
+      image: {
+        src: photo("photo-1693652794759-4a383500f1aa", 1200, 72),
+        alt: "The Humber Bay waterfront with the city skyline across the water",
+      },
+    },
+    {
+      name: "Milton",
+      landmark: "the Niagara Escarpment",
+      blurb:
+        "New builds tucked under the escarpment. Big windows, big views, and plenty of dust from all that fresh construction.",
+      image: {
+        src: photo("photo-1698156223257-43b1c4b868ce", 1200, 72),
+        alt: "Autumn colour along the Niagara Escarpment near Milton",
+      },
+    },
+    {
+      name: "Burlington",
+      landmark: "the lakeshore & pier",
+      blurb:
+        "From the Brant Street pier to the quiet streets inland, a lakeside city that takes pride in a well-kept home.",
+      image: {
+        src: photo("photo-1582167482830-1b0b9abd7f76", 1200, 72),
+        alt: "A wooden pier reaching into Lake Ontario at golden hour near Burlington",
+      },
+    },
+  ] as ServiceArea[],
 };
+
+export const areaNames = serviceAreas.areas.map((a) => a.name);
 
 /* --------------------------------------------------------- Testimonials ---
    Demonstration fallback used only if the CMS is unreachable. Live reviews are

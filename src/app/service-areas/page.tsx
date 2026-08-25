@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { RevealImage } from "@/components/motion";
+import { MapPin } from "lucide-react";
+import { Reveal } from "@/components/motion";
 import { CtaBand } from "@/components/CtaBand";
-import { business, serviceAreas, images } from "@/lib/site";
+import { business, serviceAreas, areaNames } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Service Areas",
-  description: `New Green provides window and house cleaning across ${serviceAreas.areas.join(
+  description: `New Green provides window and house cleaning across ${areaNames.join(
     ", "
   )}, and the wider GTA. Ask us about your neighbourhood.`,
   alternates: { canonical: "/service-areas" },
@@ -15,54 +16,60 @@ export const metadata: Metadata = {
 export default function ServiceAreasPage() {
   return (
     <>
+      {/* Hero (no generic map — the cities speak for themselves below) */}
       <section className="relative overflow-hidden">
-        <div className="container-x grid items-center gap-10 pb-16 pt-32 lg:grid-cols-2 lg:gap-16 lg:pb-24 lg:pt-40">
-          <div className="max-w-xl">
+        <div className="container-x pb-10 pt-28 lg:pb-12 lg:pt-32">
+          <div className="max-w-2xl">
             <span className="eyebrow">Service areas</span>
-            <h1 className="h1 mt-5">Cleaning across {business.primaryCity} and the GTA.</h1>
+            <h1 className="h1 mt-5">
+              Cleaning across {business.primaryCity} and the GTA.
+            </h1>
             <p className="lead mt-5">{serviceAreas.intro}</p>
-            <ul className="mt-8 flex flex-wrap gap-2.5">
-              {serviceAreas.areas.map((a) => (
-                <li key={a} className="tag">
-                  {a}
-                </li>
-              ))}
-            </ul>
           </div>
-          <RevealImage>
-            <div className="relative aspect-[4/3] overflow-hidden rounded-[1.75rem] border border-line shadow-[var(--shadow-xl)]">
-              <Image
-                src={images.serviceArea.src}
-                alt={images.serviceArea.alt}
-                fill
-                priority
-                sizes="(max-width: 1024px) 100vw, 48vw"
-                className="object-cover"
-              />
-            </div>
-          </RevealImage>
         </div>
       </section>
 
-      <section className="section bg-surface-muted">
+      {/* Landmark cards — the place each community is known for */}
+      <section className="section pt-2">
         <div className="container-x">
-          <div className="max-w-2xl">
-            <span className="eyebrow">Coverage</span>
-            <h2 className="h2 mt-4">Communities we clean.</h2>
-            <p className="lead mt-5">
-              We serve homes throughout the following communities and the surrounding region. If you
-              do not see your neighbourhood, ask us. Our service area is growing.
-            </p>
-          </div>
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {serviceAreas.areas.map((a) => (
-              <div key={a} className="card flex items-center justify-between p-5">
-                <span className="text-[1.05rem] font-semibold text-ink">{a}</span>
-                <span className="label-mono text-brand-700">
-                  {a === serviceAreas.primary ? "Primary" : "Serviced"}
-                </span>
-              </div>
-            ))}
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {serviceAreas.areas.map((area, i) => {
+              const isPrimary = area.name === serviceAreas.primary;
+              return (
+                <Reveal key={area.name} delay={(i % 3) * 0.06}>
+                  <article className="card card-hover group flex h-full flex-col overflow-hidden">
+                    <div className="relative aspect-[16/10] overflow-hidden">
+                      <Image
+                        src={area.image.src}
+                        alt={area.image.alt}
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        className="object-cover transition-transform duration-700 group-hover:scale-[1.05]"
+                      />
+                      <div
+                        className="absolute inset-0 bg-[linear-gradient(180deg,transparent_40%,rgba(11,42,34,0.72)_100%)]"
+                        aria-hidden="true"
+                      />
+                      {isPrimary && (
+                        <span className="absolute right-3 top-3 rounded-full bg-accent px-2.5 py-1 text-[0.7rem] font-semibold uppercase tracking-wider text-[#241a05]">
+                          Home base
+                        </span>
+                      )}
+                      <div className="absolute inset-x-0 bottom-0 flex items-center gap-1.5 p-4 text-white">
+                        <MapPin className="h-4 w-4 text-brand-100" strokeWidth={2} />
+                        <span className="text-[0.82rem] font-medium text-brand-50/90">
+                          Known for {area.landmark}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex flex-1 flex-col p-6">
+                      <h2 className="text-[1.25rem] font-semibold text-ink">{area.name}</h2>
+                      <p className="mt-2 text-[0.95rem] leading-relaxed text-muted">{area.blurb}</p>
+                    </div>
+                  </article>
+                </Reveal>
+              );
+            })}
           </div>
         </div>
       </section>

@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 export default function QuoteReceivedPage() {
   return (
     <section className="relative overflow-hidden">
-      <div className="container-x pb-24 pt-32 lg:pt-40">
+      <div className="container-x pb-14 pt-28 lg:pb-16 lg:pt-32">
         <div className="mx-auto max-w-xl text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-brand-50 text-brand-800">
             <Check className="h-8 w-8" strokeWidth={2.5} />

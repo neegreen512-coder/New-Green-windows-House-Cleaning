@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Star } from "lucide-react";
-import { SectionHeading } from "@/components/SectionHeading";
+import { Star, X } from "lucide-react";
 import { ReviewForm } from "@/components/ReviewForm";
 import { testimonials as fallbackData } from "@/lib/site";
 import { getApprovedReviews, type CmsReview } from "@/lib/cms";
@@ -86,7 +85,7 @@ function SkeletonCard() {
 
 export function Testimonials() {
   const [reviews, setReviews] = useState<CmsReview[] | null>(null);
-  const [showForm, setShowForm] = useState(false);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -98,18 +97,26 @@ export function Testimonials() {
     };
   }, []);
 
+  // Lock scroll + close on Escape while the review dialog is open.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
+
   return (
     <section className="section bg-surface-muted">
-      <div className="container-x">
-        <SectionHeading
-          eyebrow="Kind words"
-          title="What a great clean feels like."
-          lead="Real words from the homeowners we clean for across Mississauga and the GTA."
-          align="center"
-        />
+      <div className="container-x text-center">
+        <h2 className="h2 mx-auto max-w-2xl">What a great clean feels like.</h2>
       </div>
 
-      <div className="mt-14">
+      <div className="mt-12">
         {reviews === null ? (
           <div className="container-x flex gap-5 overflow-hidden">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -128,16 +135,36 @@ export function Testimonials() {
       </div>
 
       <div className="container-x mt-10 text-center">
-        {!showForm ? (
-          <button onClick={() => setShowForm(true)} className="btn btn-secondary">
-            Leave a review
-          </button>
-        ) : (
-          <div className="mx-auto mt-4 max-w-xl text-left">
-            <ReviewForm onClose={() => setShowForm(false)} />
-          </div>
-        )}
+        <button onClick={() => setOpen(true)} className="btn btn-secondary">
+          Leave a review
+        </button>
       </div>
+
+      {/* Review dialog */}
+      {open && (
+        <div
+          className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto overscroll-contain p-4 py-[7vh] sm:p-6"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Leave a review"
+        >
+          <div
+            className="absolute inset-0 bg-ink/55 backdrop-blur-sm"
+            onClick={() => setOpen(false)}
+          />
+          <div className="relative w-full max-w-xl">
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              aria-label="Close"
+              className="absolute -top-3 -right-2 z-10 grid h-10 w-10 place-items-center rounded-full bg-surface text-ink shadow-[var(--shadow-md)] ring-1 ring-line transition-transform hover:scale-105 sm:-right-4"
+            >
+              <X className="h-5 w-5" strokeWidth={2} />
+            </button>
+            <ReviewForm onClose={() => setOpen(false)} />
+          </div>
+        </div>
+      )}
     </section>
   );
 }

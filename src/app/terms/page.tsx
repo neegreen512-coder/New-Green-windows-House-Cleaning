@@ -12,7 +12,7 @@ const updated = "25 August 2026";
 export default function TermsPage() {
   return (
     <section className="relative overflow-hidden">
-      <div className="container-x pb-24 pt-32 lg:pt-40">
+      <div className="container-x pb-14 pt-28 lg:pb-16 lg:pt-32">
         <div className="mx-auto max-w-3xl">
           <span className="eyebrow">Legal</span>
           <h1 className="h1 mt-4">Terms &amp; Conditions</h1>

@@ -20,7 +20,7 @@ const items = [
 export default function ContactPage() {
   return (
     <section className="relative overflow-hidden">
-      <div className="container-x pb-24 pt-32 lg:pt-40">
+      <div className="container-x pb-14 pt-28 lg:pb-16 lg:pt-32">
         <div className="max-w-2xl">
           <span className="eyebrow">Contact</span>
           <h1 className="h1 mt-4">Let&apos;s talk about your home.</h1>

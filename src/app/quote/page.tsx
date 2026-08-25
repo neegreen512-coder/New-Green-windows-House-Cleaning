@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default function QuotePage() {
   return (
     <section className="relative overflow-hidden">
-      <div className="container-x pb-24 pt-32 lg:pt-40">
+      <div className="container-x pb-14 pt-28 lg:pb-16 lg:pt-32">
         <div className="mx-auto max-w-2xl text-center">
           <span className="eyebrow eyebrow--center">Free quote</span>
           <h1 className="h1 mt-4">Request a free quote</h1>

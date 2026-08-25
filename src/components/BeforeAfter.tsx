@@ -15,10 +15,13 @@ type Img = { src: string; alt: string };
 export function BeforeAfter({
   before,
   after,
+  treatBefore = false,
   className = "",
 }: {
   before: Img;
   after: Img;
+  /** Render the "before" as the same room looking dull/dirty (filter + grime). */
+  treatBefore?: boolean;
   className?: string;
 }) {
   const [pos, setPos] = useState(55);
@@ -112,9 +115,27 @@ export function BeforeAfter({
         After
       </span>
 
-      {/* BEFORE (messy) clipped to the left of the handle */}
+      {/* BEFORE (same room, made to look uncleaned) clipped to the left of the handle */}
       <div className="absolute inset-0 overflow-hidden" style={{ clipPath: `inset(0 ${100 - pos}% 0 0)` }}>
-        <Image src={before.src} alt={before.alt} fill sizes="(max-width: 1024px) 100vw, 60vw" className="object-cover" />
+        <Image
+          src={before.src}
+          alt={before.alt}
+          fill
+          sizes="(max-width: 1024px) 100vw, 60vw"
+          className="object-cover"
+          style={treatBefore ? { filter: "grayscale(0.5) brightness(0.7) contrast(0.9) saturate(0.7) blur(0.4px)" } : undefined}
+        />
+        {treatBefore && (
+          <div
+            className="pointer-events-none absolute inset-0"
+            aria-hidden="true"
+            style={{
+              background:
+                "radial-gradient(130% 120% at 50% 0%, rgba(74,64,40,0.18), rgba(18,16,10,0.5) 100%)",
+              mixBlendMode: "multiply",
+            }}
+          />
+        )}
         <span className="pointer-events-none absolute bottom-4 left-4 rounded-full bg-ink/70 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white">
           Before
         </span>

@@ -5,7 +5,6 @@ import "./globals.css";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { MobileQuoteBar } from "@/components/MobileQuoteBar";
-import { WaterBackground } from "@/components/WaterBackground";
 import { business, analytics } from "@/lib/site";
 
 const geistSans = Geist({
@@ -74,7 +73,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en-CA" className={`${geistSans.variable} ${geistMono.variable} ${displayFont.variable}`}>
       <body>
-        <WaterBackground />
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-brand-800 focus:px-4 focus:py-2 focus:text-white"

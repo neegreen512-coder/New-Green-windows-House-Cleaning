@@ -283,8 +283,19 @@ admin.get("/pricing", async (c) => {
   return c.json(ok(results.map((r) => ({ ...r, features: safeJson(r.features) }))));
 });
 
+const MAX_PACKAGES = 3;
+
 admin.post("/pricing", async (c) => {
   const b = await c.req.json().catch(() => ({}));
+  // Hard cap: at most 3 packages. Enforced here so the limit holds no matter
+  // what calls the admin API.
+  const countRow = await c.env.DB.prepare("SELECT COUNT(*) AS n FROM pricing").first<{ n: number }>();
+  if (Number(countRow?.n ?? 0) >= MAX_PACKAGES) {
+    return c.json(
+      { ok: false, error: `You can have at most ${MAX_PACKAGES} packages. Delete one before adding another.` },
+      400
+    );
+  }
   await c.env.DB.prepare(
     "INSERT INTO pricing (name, blurb, price, unit, features, featured, sort, active, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
   )

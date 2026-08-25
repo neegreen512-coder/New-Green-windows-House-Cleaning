@@ -10,7 +10,13 @@ import { getPricing } from "@/lib/cms";
 
 const FALLBACK: PricingPackage[] = pricingFallback;
 
-export function Pricing() {
+export function Pricing({
+  eyebrow = "Pricing",
+  className = "",
+}: {
+  eyebrow?: string;
+  className?: string;
+}) {
   const [items, setItems] = useState<PricingPackage[] | null>(null);
 
   useEffect(() => {
@@ -38,10 +44,10 @@ export function Pricing() {
   const cards = items ?? FALLBACK;
 
   return (
-    <section id="pricing" className="section">
+    <section id="pricing" className={`section ${className}`}>
       <div className="container-x">
         <SectionHeading
-          eyebrow="Pricing"
+          eyebrow={eyebrow}
           title="Straightforward pricing, no surprises."
           lead="We price each job by its size and scope, and you see the number before anything is booked. Here is what each service covers."
           align="center"
@@ -59,12 +65,6 @@ export function Pricing() {
                   <span className="absolute right-6 top-6 z-10 label-mono text-brand-700">
                     Most popular
                   </span>
-                )}
-                {p.image && (
-                  <div className="mb-5 overflow-hidden rounded-xl">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={p.image} alt={p.name} className="aspect-[16/10] w-full object-cover" />
-                  </div>
                 )}
                 <h3 className="text-[1.3rem] font-semibold text-ink">{p.name}</h3>
                 <p className="mt-2 text-[0.95rem] leading-relaxed text-muted">{p.blurb}</p>
