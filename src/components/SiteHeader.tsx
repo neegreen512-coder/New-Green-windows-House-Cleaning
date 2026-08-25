@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { CaretDown, List, Phone, X } from "@phosphor-icons/react/dist/ssr";
-import { Brand, LogoMark } from "./Brand";
+import { ArrowRight, CaretDown, List, Phone, X } from "@phosphor-icons/react/dist/ssr";
+import { Brand } from "./Brand";
 import { HeaderWaterLogo } from "./HeaderWaterLogo";
 import { business, nav } from "@/lib/site";
 
@@ -52,16 +52,15 @@ export function SiteHeader() {
     <header className="fixed inset-x-0 top-0 z-50">
       <div className="container-x pt-3 sm:pt-4">
         <div
-          className={`relative rounded-2xl border pl-4 pr-3 transition-all duration-300 ${
+          className={`relative rounded-2xl border pl-5 pr-3 transition-all duration-300 ${
             scrolled
-              ? "border-line bg-bg/75 shadow-[0_10px_40px_-24px_rgba(16,40,32,0.6)] backdrop-blur-xl"
-              : "border-white/40 bg-white/25 backdrop-blur-md"
+              ? "border-line bg-surface/95 shadow-[0_12px_44px_-24px_rgba(16,40,32,0.65)] backdrop-blur-xl"
+              : "border-line bg-surface/85 shadow-[0_8px_28px_-20px_rgba(16,40,32,0.5)] backdrop-blur-md"
           }`}
         >
           <div className={`flex items-center justify-between gap-4 ${scrolled ? "h-14" : "h-16"}`}>
-            <Link href="/" aria-label="New Green, home" className="inline-flex items-center gap-2.5">
-              <LogoMark className="h-9 w-9 shrink-0" />
-              <HeaderWaterLogo className="h-[1.45rem] w-auto" />
+            <Link href="/" aria-label="New Green, home" className="inline-flex items-center">
+              <HeaderWaterLogo className="h-8 w-auto sm:h-9" />
             </Link>
 
           {/* Desktop nav */}
@@ -77,15 +76,22 @@ export function SiteHeader() {
                   weight="bold"
                 />
               </button>
-              <div className="invisible absolute left-0 top-full pt-3 opacity-0 transition-all duration-200 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
-                <div className="w-64 overflow-hidden rounded-2xl border border-line bg-surface p-2 shadow-[var(--shadow-lg)]">
+              <div className="invisible absolute left-0 top-full translate-y-1 pt-3 opacity-0 transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
+                <div className="w-72 rounded-2xl border border-line bg-surface p-1.5 shadow-[var(--shadow-lg)]">
+                  <p className="px-3 pb-1.5 pt-2 text-[0.7rem] font-medium uppercase tracking-[0.14em] text-muted">
+                    Our services
+                  </p>
                   {nav.services.map((s) => (
                     <Link
                       key={s.href}
                       href={s.href}
-                      className="block rounded-xl px-3 py-2.5 text-[0.92rem] font-medium text-ink/85 transition-colors hover:bg-brand-50 hover:text-brand-800"
+                      className="group/svc flex items-center justify-between gap-3 rounded-xl px-3.5 py-2.5 text-[0.94rem] font-medium text-ink/85 transition-colors hover:bg-brand-50 hover:text-brand-800"
                     >
                       {s.label}
+                      <ArrowRight
+                        className="h-3.5 w-3.5 -translate-x-1 opacity-0 transition-all duration-200 group-hover/svc:translate-x-0 group-hover/svc:opacity-100"
+                        weight="bold"
+                      />
                     </Link>
                   ))}
                 </div>

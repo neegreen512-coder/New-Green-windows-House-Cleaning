@@ -13,8 +13,8 @@ export function WhyUs() {
             <span className="eyebrow">Why New Green</span>
             <h2 className="h2 mt-4">A service built on the details.</h2>
             <p className="lead mt-5">
-              We&apos;re a newer company with an old-fashioned commitment to doing the job properly.
-              Here&apos;s what you can count on with every visit.
+              Owner-operated, and cleaning homes across Mississauga and the GTA for about five years.
+              Here is what you can count on with every visit.
             </p>
             <Link href="/about" className="group mt-8 inline-flex items-center gap-2 font-semibold text-brand-800">
               More about our approach

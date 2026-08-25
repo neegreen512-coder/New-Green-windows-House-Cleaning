@@ -14,9 +14,9 @@ INSERT INTO reviews (name, context, service, quote, rating, status, avatar) VALU
 ('Jason Reid', 'Etobicoke', 'House Cleaning', 'Reliable and thorough on our bi-weekly plan. Same standard every visit and easy to reschedule when life gets busy.', 4, 'approved', '/images/avatars/jason.jpg');
 
 INSERT INTO pricing (name, blurb, price, unit, features, featured, sort, active) VALUES
-('Window Cleaning', 'Interior and exterior glass done right.', 'Custom quote', 'per visit', '["Interior + exterior glass","Frames, sills and tracks","Screens on request","Streak-free finish"]', 0, 1, 1),
-('House Cleaning', 'Dependable, detailed whole-home cleaning.', 'Custom quote', 'per visit', '["Kitchens and bathrooms","Dusting and floors","One-time or recurring","Products chosen for your home"]', 1, 2, 1),
-('Deep Cleaning', 'A thorough, room-by-room reset.', 'Custom quote', 'per visit', '["Detailed degrease and descale","Edges, baseboards, corners","Interior window glass","Fixture detailing"]', 0, 3, 1);
+('Window Cleaning', 'Interior and exterior glass done right.', 'From $159', 'per visit', '["Interior + exterior glass","Frames, sills and tracks","Screens on request","Streak-free finish"]', 0, 1, 1),
+('House Cleaning', 'Dependable, detailed whole-home cleaning.', 'From $139', 'per visit', '["Kitchens and bathrooms","Dusting and floors","One-time or recurring","Products chosen for your home"]', 1, 2, 1),
+('Deep Cleaning', 'A thorough, room-by-room reset.', 'From $299', 'per visit', '["Detailed degrease and descale","Edges, baseboards, corners","Interior window glass","Fixture detailing"]', 0, 3, 1);
 
 INSERT INTO content (key, value) VALUES
 ('reviews_heading', 'What a great clean feels like.'),

@@ -21,15 +21,16 @@ export default function AboutPage() {
         <div className="container-x grid items-center gap-10 pb-16 pt-32 lg:grid-cols-2 lg:gap-16 lg:pb-24 lg:pt-40">
           <div className="max-w-xl">
             <span className="eyebrow">About us</span>
-            <h1 className="h1 mt-5">A newer company, an old-fashioned standard.</h1>
+            <h1 className="h1 mt-5">A local team that treats your home like ours.</h1>
             <p className="lead mt-5">
-              New Green provides professional window and house cleaning for homes across{" "}
-              {business.primaryCity} and the GTA. We built this company around one idea: do the job
-              properly, every time, and treat every home with care.
+              New Green is an owner-operated window and house cleaning company. We have cleaned homes
+              around {business.primaryCity} for about five years, and we are now expanding across the
+              GTA.
             </p>
             <p className="mt-4 text-[1.02rem] leading-relaxed text-muted">
-              From streak-free glass to a spotless kitchen, we focus on the details that make a home
-              feel genuinely clean. Fully insured, thoughtful with products, and easy to book.
+              Because we are owner-run, the person who quotes your home is invested in how it turns
+              out. Our cleaners are background-checked, insured, and bonded; we send the same cleaner
+              wherever we can; and we use eco-friendly products that are safe for kids and pets.
             </p>
           </div>
           <RevealImage>

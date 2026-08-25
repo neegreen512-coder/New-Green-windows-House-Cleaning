@@ -42,24 +42,24 @@ export function photo(id: string, w = 1600, q = 72) {
 
 export const images = {
   heroClean: {
-    src: "/images/hero-clean.jpg",
-    alt: "A New Green cleaner detailing and dusting a bright, modern living room",
+    src: "/images/hero-clean.webp",
+    alt: "A New Green cleaner in a green apron wiping a large window streak-free in a bright living room",
   },
   interior: {
     src: "/images/interior.jpg",
     alt: "A freshly cleaned, sunlit living room with an armchair beside a clear window",
   },
   windowCleaning: {
-    src: "/images/window-clean.jpg",
+    src: "/images/window-clean.webp",
     alt: "A cleaner wiping a home window until the glass is perfectly streak-free",
   },
   houseCleaning: {
-    src: "/images/house-clean.jpg",
+    src: "/images/house-clean.webp",
     alt: "A cleaner vacuuming a bright, open-plan living room",
   },
   kitchen: {
-    src: "/images/kitchen-clean.jpg",
-    alt: "A cleaner scrubbing and sanitising a kitchen sink and counters",
+    src: "/images/kitchen-clean.webp",
+    alt: "A cleaner wiping down clean kitchen counters and sink in a bright kitchen",
   },
   bathroom: {
     src: "/images/kitchen-clean.jpg",
@@ -74,15 +74,15 @@ export const images = {
     alt: "A bright, spotless living room after a clean",
   },
   cleaningAction: {
-    src: "/images/dusting.jpg",
-    alt: "A cleaner in gloves carefully dusting and wiping a wooden surface",
+    src: "/images/dusting.webp",
+    alt: "A cleaner dusting a wooden surface with a microfibre cloth",
   },
   cinematic: {
-    src: "/images/spray.jpg",
-    alt: "A cleaner spraying and wiping a surface in a bright home",
+    src: "/images/cinematic.webp",
+    alt: "A bright, freshly cleaned living room in warm afternoon light",
   },
   serviceArea: {
-    src: "/images/service-area.jpg",
+    src: "/images/service-area.webp",
     alt: "Aerial view of a leafy residential neighbourhood across the Mississauga region",
   },
 } as const;
@@ -192,10 +192,10 @@ export const nav = {
 /* ------------------------------------------------------------ Trust strip */
 
 export const trustPoints = [
-  { icon: "shield", label: "Fully insured", note: "Every home, every visit" },
-  { icon: "sparkles", label: "Supplies included", note: "We bring products and gear" },
+  { icon: "shield", label: "Insured & bonded", note: "Background-checked cleaners" },
+  { icon: "heart", label: "Owner-operated", note: "Not a faceless franchise" },
+  { icon: "sparkles", label: "Supplies included", note: "Eco-friendly options" },
   { icon: "calendar", label: "One-time or recurring", note: "Weekly, bi-weekly, monthly" },
-  { icon: "route", label: "Quote in a few clicks", note: "No phone tag for a price" },
   { icon: "smile", label: "Mississauga & the GTA", note: "Local, and growing" },
 ];
 
@@ -203,19 +203,19 @@ export const trustPoints = [
 
 export const principles = [
   {
+    icon: "clock",
+    title: "The same cleaner each visit",
+    body: "A familiar face who already knows your home and how you like it, not a rotating crew of strangers.",
+  },
+  {
     icon: "target",
     title: "We sweat the details",
     body: "Edges, window tracks, baseboards, behind the taps. Clean shows in the spots a quick pass skips.",
   },
   {
-    icon: "clock",
-    title: "We show up on time",
-    body: "A confirmed time window and a heads-up before we arrive, so your day is not left guessing.",
-  },
-  {
     icon: "leaf",
-    title: "Gentle on your home",
-    body: "Products matched to your surfaces and household, with eco-friendly options on request.",
+    title: "Safe, eco-friendly products",
+    body: "Kind to kids, pets, and your surfaces, chosen to suit your home.",
   },
   {
     icon: "heart",
@@ -404,7 +404,7 @@ export const pricingFallback: PricingPackage[] = [
   {
     name: "Window Cleaning",
     blurb: "Interior and exterior glass done right.",
-    price: "Custom quote",
+    price: "From $159",
     unit: "per visit",
     features: [
       "Interior + exterior glass",
@@ -417,7 +417,7 @@ export const pricingFallback: PricingPackage[] = [
   {
     name: "House Cleaning",
     blurb: "Dependable, detailed whole-home cleaning.",
-    price: "Custom quote",
+    price: "From $139",
     unit: "per visit",
     features: [
       "Kitchens and bathrooms",
@@ -430,7 +430,7 @@ export const pricingFallback: PricingPackage[] = [
   {
     name: "Deep Cleaning",
     blurb: "A thorough, room-by-room reset.",
-    price: "Custom quote",
+    price: "From $299",
     unit: "per visit",
     features: [
       "Detailed degrease and descale",

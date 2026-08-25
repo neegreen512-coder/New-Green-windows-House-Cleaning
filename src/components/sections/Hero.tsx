@@ -54,7 +54,7 @@ export function Hero() {
             {...fade(0.32)}
             className="mt-10 flex flex-wrap gap-x-7 gap-y-3 text-[0.9rem] font-medium text-muted"
           >
-            {["Fully insured", "Eco-friendly options", "Easy online booking"].map((t) => (
+            {["Owner-operated", "Insured & bonded", "Background-checked cleaners"].map((t) => (
               <li key={t} className="inline-flex items-center gap-2">
                 <Check className="h-4 w-4 text-brand-600" strokeWidth={2.4} />
                 {t}
