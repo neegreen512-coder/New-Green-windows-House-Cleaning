@@ -52,12 +52,16 @@ export const metadata: Metadata = {
     title: `${business.name} | A Cleaner Home. A Brighter View.`,
     description:
       "Professional window and house cleaning for homes across Canada. Easy online quotes.",
+    images: [
+      { url: "/brand/newgreen-ad-landscape.jpg", width: 1200, height: 628, alt: business.name },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: `${business.name}`,
     description:
       "Professional window and house cleaning for homes across Canada. Easy online quotes.",
+    images: ["/brand/newgreen-ad-landscape.jpg"],
   },
   robots: { index: true, follow: true },
 };
