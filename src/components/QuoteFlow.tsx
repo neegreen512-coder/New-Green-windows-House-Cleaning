@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Check } from "@phosphor-icons/react/dist/ssr";
 import { quoteOptions, business, type QuotePayload } from "@/lib/site";
@@ -55,6 +56,7 @@ function Choice({
 
 export function QuoteFlow() {
   const reduce = useReducedMotion();
+  const router = useRouter();
   const [step, setStep] = useState(0);
   const [data, setData] = useState<QuotePayload>(empty);
   const [status, setStatus] = useState<Status>("idle");
@@ -80,7 +82,7 @@ export function QuoteFlow() {
     setError("");
     try {
       await submitQuote(data);
-      setStatus("done");
+      router.push("/quote-request-received");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
       setStatus("error");
