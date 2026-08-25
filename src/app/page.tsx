@@ -19,7 +19,7 @@ export default function HomePage() {
     "@type": "HomeAndConstructionBusiness",
     name: business.name,
     description:
-      "Professional window and house cleaning for homes across Canada, including deep cleaning and move-in / move-out cleaning.",
+      "Professional window and house cleaning for homes across Canada, including detailed deep cleaning.",
     url: `https://${business.domain}`,
     areaServed: { "@type": "Country", name: "Canada" },
     makesOffer: services.map((s) => ({

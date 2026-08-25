@@ -83,7 +83,7 @@ export function ReviewForm({ onClose }: { onClose?: () => void }) {
           className="w-full rounded-lg border border-line-strong bg-bg px-3.5 py-2.5 text-ink outline-none transition-colors focus:border-brand-600"
         >
           <option value="">Select a service</option>
-          {["Window Cleaning", "House Cleaning", "Deep Cleaning", "Move-In / Move-Out"].map((s) => (
+          {["Window Cleaning", "House Cleaning", "Deep Cleaning"].map((s) => (
             <option key={s} value={s}>
               {s}
             </option>

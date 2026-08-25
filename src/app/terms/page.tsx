@@ -28,8 +28,8 @@ export default function TermsPage() {
             <Section title="Our services">
               <p>
                 We provide residential cleaning services, including window cleaning, house cleaning,
-                deep cleaning, and move-in and move-out cleaning. Services are subject to availability
-                and to the service areas we cover.
+                and deep cleaning. Services are subject to availability and to the service areas we
+                cover.
               </p>
             </Section>
 

@@ -38,7 +38,6 @@ export const metadata: Metadata = {
     "house cleaning",
     "residential cleaning",
     "deep cleaning",
-    "move-in move-out cleaning",
     "Canada",
   ],
   alternates: { canonical: "/" },

@@ -81,10 +81,6 @@ export const images = {
     src: "/images/spray.jpg",
     alt: "A cleaner spraying and wiping a surface in a bright home",
   },
-  moveInOut: {
-    src: "/images/interior.jpg",
-    alt: "A freshly cleaned room ready for a new occupant",
-  },
   serviceArea: {
     src: "/images/service-area.jpg",
     alt: "Aerial view of a leafy residential neighbourhood across the Mississauga region",
@@ -172,27 +168,6 @@ export const services: Service[] = [
     image: images.kitchen,
     pageTitle: "Deep Cleaning",
     meta: "Detailed room-by-room deep cleaning that reaches the areas routine cleaning misses.",
-  },
-  {
-    slug: "move-in-move-out-cleaning",
-    title: "Move-In / Move-Out Cleaning",
-    shortTitle: "Move-In / Move-Out",
-    navLabel: "Move-In / Move-Out",
-    summary:
-      "Empty-home cleaning for the start or end of a tenancy. Leave it spotless for the next occupant, or arrive to a home that feels brand new.",
-    audience:
-      "Made for renters, homeowners, and property managers preparing a home for hand-over, sale, or occupancy.",
-    includes: [
-      "Whole-home detailed clean",
-      "Inside cabinets and drawers",
-      "Appliance exteriors and interiors",
-      "Bathrooms fully sanitised",
-      "Floors, edges, and fixtures",
-      "Interior window glass",
-    ],
-    image: images.moveInOut,
-    pageTitle: "Move-In / Move-Out Cleaning",
-    meta: "Move-in and move-out cleaning for renters, homeowners, and property managers preparing a home for hand-over.",
   },
 ];
 
@@ -359,10 +334,10 @@ export const testimonials: Testimonial[] = [
   },
   {
     quote:
-      "Used the move-out clean before handing back the keys. Spotless result and completely stress-free at a very busy time.",
+      "The deep clean reached places I had given up on: behind the appliances, the window tracks, the grout. It felt like a reset for the whole house.",
     name: "Emily Chen",
     context: "Mississauga",
-    service: "Move-In / Move-Out",
+    service: "Deep Cleaning",
     rating: 5,
     avatar: "/images/avatars/emily.jpg",
   },
