@@ -30,6 +30,12 @@ export const business = {
   },
 } as const;
 
+/* ---------------------------------------------------------------- Analytics
+   Public Google Analytics 4 measurement ID. Leave empty to disable the tag. */
+export const analytics = {
+  ga4Id: "G-THHT567H3G",
+} as const;
+
 /* ------------------------------------------------------------------ Images
    Curated placeholder photography (Unsplash). Every reference is centralised
    here so real business photography can be swapped in without touching UI.

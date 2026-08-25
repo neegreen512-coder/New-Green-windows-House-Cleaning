@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Geist, Geist_Mono, Bricolage_Grotesque } from "next/font/google";
 import "./globals.css";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { MobileQuoteBar } from "@/components/MobileQuoteBar";
 import { WaterBackground } from "@/components/WaterBackground";
-import { business } from "@/lib/site";
+import { business, analytics } from "@/lib/site";
 
 const geistSans = Geist({
   subsets: ["latin"],
@@ -80,6 +81,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </main>
         <SiteFooter />
         <MobileQuoteBar />
+        {analytics.ga4Id && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${analytics.ga4Id}`}
+              strategy="afterInteractive"
+            />
+            <Script id="ga4-init" strategy="afterInteractive">
+              {`window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', '${analytics.ga4Id}');`}
+            </Script>
+          </>
+        )}
       </body>
     </html>
   );
