@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { ReviewsPanel } from "./ReviewsPanel";
 import { LeadsPanel } from "./LeadsPanel";
 import { PricingPanel } from "./PricingPanel";
@@ -16,12 +17,25 @@ const TABS = [
 type TabId = (typeof TABS)[number]["id"];
 
 export function AdminDashboard() {
+  const router = useRouter();
   const [tab, setTab] = useState<TabId>("reviews");
+
+  async function signOut() {
+    await fetch("/api/admin-login", { method: "DELETE" });
+    router.refresh();
+  }
 
   return (
     <div>
-      <span className="eyebrow">Owner admin</span>
-      <h1 className="h2 mt-3">Manage your site</h1>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <span className="eyebrow">Owner admin</span>
+          <h1 className="h2 mt-3">Manage your site</h1>
+        </div>
+        <button type="button" onClick={signOut} className="btn btn-secondary shrink-0 px-4 py-2 text-sm">
+          Sign out
+        </button>
+      </div>
       <p className="mt-3 text-[0.95rem] text-muted">
         Approve reviews, edit pricing packages, and update text. Changes appear on the site without a
         rebuild.

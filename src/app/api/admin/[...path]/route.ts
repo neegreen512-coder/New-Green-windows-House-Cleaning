@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { isAdminAuthed } from "@/lib/adminAuth";
 
 /**
  * Server-side proxy to the CMS worker's admin API. The admin secret is injected
@@ -41,6 +42,12 @@ async function proxy(req: NextRequest, path: string[]) {
 
 type Ctx = { params: Promise<{ path: string[] }> };
 const handler = async (req: NextRequest, ctx: Ctx) => {
+  if (!(await isAdminAuthed())) {
+    return new Response(JSON.stringify({ ok: false, error: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
   const { path } = await ctx.params;
   return proxy(req, path);
 };
