@@ -64,14 +64,17 @@ export function HeaderWaterLogo({ className = "" }: { className?: string }) {
     const mx = mc.getContext("2d")!;
     const tex = gl.createTexture();
     const paint = () => {
+      const fam =
+        getComputedStyle(document.documentElement).getPropertyValue("--font-bricolage").trim() ||
+        '"Outfit", sans-serif';
       let size = 100;
-      mx.font = `700 ${size}px "Outfit", sans-serif`;
+      mx.font = `700 ${size}px ${fam}`;
       size = (size * (W * 0.96)) / mx.measureText("New Green").width;
       mx.clearRect(0, 0, W, H);
       mx.fillStyle = "#fff";
       mx.textAlign = "center";
       mx.textBaseline = "middle";
-      mx.font = `700 ${size}px "Outfit", sans-serif`;
+      mx.font = `700 ${size}px ${fam}`;
       mx.fillText("New Green", W / 2, H * 0.52);
       gl.bindTexture(gl.TEXTURE_2D, tex);
       gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);

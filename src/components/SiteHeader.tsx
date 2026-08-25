@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { ArrowRight, CaretDown, List, Phone, X } from "@phosphor-icons/react/dist/ssr";
-import { Brand, LogoMark } from "./Brand";
+import { List, Phone, X } from "@phosphor-icons/react/dist/ssr";
+import { Brand } from "./Brand";
 import { HeaderWaterLogo } from "./HeaderWaterLogo";
 import { business, nav } from "@/lib/site";
 
@@ -29,7 +29,6 @@ function NavLink({ href, label }: { href: string; label: string }) {
 export function SiteHeader() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
-  const [servicesOpen, setServicesOpen] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -59,46 +58,13 @@ export function SiteHeader() {
           }`}
         >
           <div className={`flex items-center justify-between gap-4 ${scrolled ? "h-14" : "h-16"}`}>
-            <Link href="/" aria-label="New Green, home" className="inline-flex items-center gap-2.5">
-              <LogoMark className="h-9 w-9 shrink-0 sm:h-10 sm:w-10" />
+            <Link href="/" aria-label="New Green, home" className="inline-flex items-center">
               <HeaderWaterLogo className="h-9 w-auto sm:h-11" />
             </Link>
 
           {/* Desktop nav */}
           <nav className="hidden items-center lg:flex" aria-label="Primary">
-            <div className="group relative">
-              <button
-                className="relative flex items-center gap-1 px-3 py-2 text-[0.94rem] font-medium text-ink/80 transition-colors hover:text-brand-800"
-                aria-haspopup="true"
-              >
-                Services
-                <CaretDown
-                  className="h-3.5 w-3.5 transition-transform duration-300 group-hover:rotate-180"
-                  weight="bold"
-                />
-              </button>
-              <div className="invisible absolute left-0 top-full translate-y-1 pt-3 opacity-0 transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
-                <div className="w-72 rounded-2xl border border-line bg-surface p-1.5 shadow-[var(--shadow-lg)]">
-                  <p className="px-3 pb-1.5 pt-2 text-[0.7rem] font-medium uppercase tracking-[0.14em] text-muted">
-                    Our services
-                  </p>
-                  {nav.services.map((s) => (
-                    <Link
-                      key={s.href}
-                      href={s.href}
-                      className="group/svc flex items-center justify-between gap-3 rounded-xl px-3.5 py-2.5 text-[0.94rem] font-medium text-ink/85 transition-colors hover:bg-brand-50 hover:text-brand-800"
-                    >
-                      {s.label}
-                      <ArrowRight
-                        className="h-3.5 w-3.5 -translate-x-1 opacity-0 transition-all duration-200 group-hover/svc:translate-x-0 group-hover/svc:opacity-100"
-                        weight="bold"
-                      />
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            </div>
-
+            <NavLink href="/#services" label="Services" />
             {nav.main.map((item) => (
               <NavLink key={item.href} href={item.href} label={item.label} />
             ))}
@@ -145,27 +111,12 @@ export function SiteHeader() {
           </div>
 
           <nav className="flex-1 overflow-y-auto px-4 py-5" aria-label="Mobile">
-            <button
-              onClick={() => setServicesOpen((v) => !v)}
-              className="flex w-full items-center justify-between rounded-xl px-3 py-3 text-lg font-semibold text-ink"
-              aria-expanded={servicesOpen}
+            <Link
+              href="/#services"
+              className="block rounded-xl px-3 py-3 text-lg font-semibold text-ink transition-colors hover:text-brand-800"
             >
               Services
-              <CaretDown className={`h-5 w-5 transition-transform ${servicesOpen ? "rotate-180" : ""}`} weight="bold" />
-            </button>
-            {servicesOpen && (
-              <div className="mb-2 ml-3 border-l border-line pl-3">
-                {nav.services.map((s) => (
-                  <Link
-                    key={s.href}
-                    href={s.href}
-                    className="block rounded-lg px-3 py-2.5 text-base font-medium text-muted transition-colors hover:text-brand-800"
-                  >
-                    {s.label}
-                  </Link>
-                ))}
-              </div>
-            )}
+            </Link>
             {nav.main.map((item) => (
               <Link
                 key={item.href}

@@ -5,13 +5,11 @@ import { useRouter } from "next/navigation";
 import { ReviewsPanel } from "./ReviewsPanel";
 import { LeadsPanel } from "./LeadsPanel";
 import { PricingPanel } from "./PricingPanel";
-import { ContentPanel } from "./ContentPanel";
 
 const TABS = [
   { id: "reviews", label: "Reviews" },
   { id: "leads", label: "Leads" },
   { id: "pricing", label: "Pricing" },
-  { id: "content", label: "Content" },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -37,8 +35,8 @@ export function AdminDashboard() {
         </button>
       </div>
       <p className="mt-3 text-[0.95rem] text-muted">
-        Approve reviews, edit pricing packages, and update text. Changes appear on the site without a
-        rebuild.
+        Approve and manage reviews, edit your pricing packages, and read new quote and contact leads.
+        Changes go live on the site right away, no rebuild needed.
       </p>
 
       <div className="mt-8 flex gap-1 rounded-xl border border-line bg-surface p-1">
@@ -60,7 +58,6 @@ export function AdminDashboard() {
         {tab === "reviews" && <ReviewsPanel />}
         {tab === "leads" && <LeadsPanel />}
         {tab === "pricing" && <PricingPanel />}
-        {tab === "content" && <ContentPanel />}
       </div>
     </div>
   );

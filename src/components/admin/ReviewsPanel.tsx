@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { adminApi, type AdminReview } from "@/lib/adminClient";
+import { testimonials } from "@/lib/site";
 
 const fieldClass =
   "w-full rounded-lg border border-line-strong bg-bg px-3 py-2 text-sm text-ink outline-none focus:border-brand-600";
@@ -34,6 +35,29 @@ export function ReviewsPanel() {
     setErr("");
     try {
       await fn();
+      await load();
+    } catch (e) {
+      setErr(msg(e));
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function loadSamples() {
+    setBusy("new");
+    setErr("");
+    try {
+      for (const t of testimonials) {
+        await adminApi.addReview({
+          name: t.name,
+          context: t.context,
+          service: t.service,
+          quote: t.quote,
+          rating: t.rating,
+          avatar: t.avatar,
+          status: "approved",
+        });
+      }
       await load();
     } catch (e) {
       setErr(msg(e));
@@ -106,7 +130,19 @@ export function ReviewsPanel() {
         {items === null ? (
           <p className="text-sm text-muted">Loading...</p>
         ) : items.length === 0 ? (
-          <p className="text-sm text-muted">No reviews yet.</p>
+          <div className="card border-dashed p-6 text-center">
+            <p className="text-sm text-muted">
+              No reviews yet. Load a few samples to see how they look, then edit or delete them.
+            </p>
+            <button
+              type="button"
+              disabled={busy === "new"}
+              onClick={loadSamples}
+              className="btn btn-primary mt-3 px-4 py-2 text-sm disabled:opacity-60"
+            >
+              {busy === "new" ? "Loading..." : "Load sample reviews"}
+            </button>
+          </div>
         ) : (
           <ul className="space-y-3">
             {items.map((r) => (

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { adminApi, type AdminPricing } from "@/lib/adminClient";
+import { pricingFallback } from "@/lib/site";
 
 const fc =
   "w-full rounded-lg border border-line-strong bg-bg px-3 py-2 text-sm text-ink outline-none focus:border-brand-600";
@@ -75,6 +76,31 @@ export function PricingPanel() {
     }
   }
 
+  async function loadStarter() {
+    setBusy("new");
+    setErr("");
+    try {
+      for (let i = 0; i < pricingFallback.length; i++) {
+        const p = pricingFallback[i];
+        await adminApi.addPricing({
+          name: p.name,
+          blurb: p.blurb,
+          price: p.price,
+          unit: p.unit,
+          features: p.features,
+          featured: p.featured ? 1 : 0,
+          active: 1,
+          sort: i + 1,
+        });
+      }
+      await load();
+    } catch (e) {
+      setErr(msg(e));
+    } finally {
+      setBusy(null);
+    }
+  }
+
   return (
     <div className="space-y-6">
       {err && <p className="text-sm text-[var(--color-error)]">{err}</p>}
@@ -83,6 +109,21 @@ export function PricingPanel() {
         <p className="text-sm text-muted">Loading...</p>
       ) : (
         <>
+          {items.length === 0 && (
+            <div className="card border-dashed p-6 text-center">
+              <p className="text-sm text-muted">
+                No packages yet. Load the starter set, then edit prices and details.
+              </p>
+              <button
+                type="button"
+                disabled={busy === "new"}
+                onClick={loadStarter}
+                className="btn btn-primary mt-3 px-4 py-2 text-sm disabled:opacity-60"
+              >
+                {busy === "new" ? "Loading..." : "Load starter packages"}
+              </button>
+            </div>
+          )}
           {items.map((p) => (
             <form
               key={p.id}
