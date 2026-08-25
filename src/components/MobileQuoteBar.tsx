@@ -22,7 +22,7 @@ export function MobileQuoteBar() {
             <Phone className="h-5 w-5" strokeWidth={2} />
           </a>
           <Link href="/quote" className="btn btn-primary h-12 flex-1">
-            Get a Free Quote
+            Get a free quote
           </Link>
         </div>
       </div>

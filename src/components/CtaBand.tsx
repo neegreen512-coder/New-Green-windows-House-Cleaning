@@ -3,8 +3,8 @@ import { business } from "@/lib/site";
 
 /** Reusable closing call-to-action band for inner pages. */
 export function CtaBand({
-  title = "Ready for a cleaner home and a brighter view?",
-  body = "Get a free, no-pressure quote today. It only takes a minute.",
+  title = "Want a price for your home?",
+  body = "Tell us what you need cleaned and we send a clear quote. It only takes a minute.",
 }: {
   title?: string;
   body?: string;

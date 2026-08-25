@@ -91,7 +91,7 @@ export function SiteFooter() {
               </li>
             </ul>
             <Link href="/quote" className="btn btn-accent mt-6">
-              Get a Free Quote
+              Get a free quote
             </Link>
           </div>
         </div>

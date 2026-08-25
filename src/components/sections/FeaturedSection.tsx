@@ -26,16 +26,16 @@ export function FeaturedSection() {
 
             <div className="absolute inset-0 flex items-center">
               <div className="max-w-xl px-6 py-8 on-dark sm:px-10 lg:px-14">
-                <span className="eyebrow text-accent-soft">Every room, considered</span>
+                <span className="eyebrow text-accent-soft">Recurring plans</span>
                 <h2 className="h2 mt-4 text-white">
-                  A home that feels brand&nbsp;new, without the effort.
+                  Stay clean without thinking about it.
                 </h2>
                 <p className="mt-4 max-w-md text-brand-100/85">
-                  Kitchens, bathrooms, living spaces and bedrooms, cleaned to a standard you&apos;ll
-                  notice the moment you walk in. Book a one-time refresh or a recurring plan.
+                  Set a weekly, bi-weekly, or monthly visit and come back to the same standard every
+                  time. No re-booking, and no re-explaining what you like.
                 </p>
                 <Link href="/house-cleaning" className="btn btn-on-dark mt-7">
-                  Explore House Cleaning
+                  See house cleaning
                   <ArrowRight className="h-[1.05rem] w-[1.05rem]" strokeWidth={2} />
                 </Link>
               </div>

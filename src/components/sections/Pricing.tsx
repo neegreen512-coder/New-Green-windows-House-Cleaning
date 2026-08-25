@@ -42,7 +42,7 @@ export function Pricing() {
         <SectionHeading
           eyebrow="Pricing"
           title="Straightforward pricing, no surprises."
-          lead="Every home is different, so we quote each job individually. Here is what each service covers, with clear pricing before you decide."
+          lead="We price each job by its size and scope, and you see the number before anything is booked. Here is what each service covers."
           align="center"
         />
 

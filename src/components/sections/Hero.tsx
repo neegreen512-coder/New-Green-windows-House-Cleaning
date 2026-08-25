@@ -36,8 +36,8 @@ export function Hero() {
           </motion.h1>
 
           <motion.p {...fade(0.16)} className="lead mt-6 max-w-md">
-            Professional window and house cleaning for homes across Mississauga and the GTA.
-            Streak-free glass, detailed home care, and a simple, no-pressure quote.
+            Window and house cleaning for homes across Mississauga and the GTA. Streak-free glass,
+            spotless rooms, and a clear price before we start.
           </motion.p>
 
           <motion.div {...fade(0.24)} className="mt-8 flex flex-col gap-3 sm:flex-row">

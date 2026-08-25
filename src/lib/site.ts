@@ -192,11 +192,11 @@ export const nav = {
 /* ------------------------------------------------------------ Trust strip */
 
 export const trustPoints = [
-  { icon: "shield", label: "Fully insured", note: "Coverage details on request" },
-  { icon: "sparkles", label: "Detail-focused", note: "Consistent standards, every visit" },
-  { icon: "leaf", label: "Eco-friendly options", note: "Products chosen for your home" },
-  { icon: "calendar", label: "Easy online booking", note: "Quote in a few clicks" },
-  { icon: "smile", label: "Satisfaction-focused", note: "We make it right" },
+  { icon: "shield", label: "Fully insured", note: "Every home, every visit" },
+  { icon: "sparkles", label: "Supplies included", note: "We bring products and gear" },
+  { icon: "calendar", label: "One-time or recurring", note: "Weekly, bi-weekly, monthly" },
+  { icon: "route", label: "Quote in a few clicks", note: "No phone tag for a price" },
+  { icon: "smile", label: "Mississauga & the GTA", note: "Local, and growing" },
 ];
 
 /* ----------------------------------------------------------- Why New Green */
@@ -204,28 +204,23 @@ export const trustPoints = [
 export const principles = [
   {
     icon: "target",
-    title: "Professional results",
-    body: "Attention to detail and consistent cleaning standards on every visit, not just a quick pass.",
+    title: "We sweat the details",
+    body: "Edges, window tracks, baseboards, behind the taps. Clean shows in the spots a quick pass skips.",
   },
   {
     icon: "clock",
-    title: "Reliable service",
-    body: "Clear communication and dependable scheduling, so you always know what to expect.",
+    title: "We show up on time",
+    body: "A confirmed time window and a heads-up before we arrive, so your day is not left guessing.",
   },
   {
     icon: "leaf",
-    title: "Thoughtful products",
-    body: "Cleaning solutions selected with your home, surfaces, and household in mind.",
-  },
-  {
-    icon: "route",
-    title: "An easy experience",
-    body: "Simple quoting and booking, from first enquiry to a spotless home.",
+    title: "Gentle on your home",
+    body: "Products matched to your surfaces and household, with eco-friendly options on request.",
   },
   {
     icon: "heart",
-    title: "Customer first",
-    body: "A service built around your satisfaction. If something isn't right, we make it right.",
+    title: "We make it right",
+    body: "If a visit is not up to standard, tell us and we will come back to put it right.",
   },
 ];
 
@@ -245,7 +240,7 @@ export type Faq = { q: string; a: string };
 export const faqs: Faq[] = [
   {
     q: "How much does window or house cleaning cost?",
-    a: "Every home is different, so pricing depends on the size of your home, the services you choose, and how often you'd like us to visit. Request a free quote and we'll give you clear pricing before you decide.",
+    a: "It depends on your home's size, which services you choose, and how often we visit. Send us the details and you get a clear price before anything is booked, with no surprises on the day.",
   },
   {
     q: "Do you clean the inside and outside of windows?",

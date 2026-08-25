@@ -32,13 +32,13 @@ export function CinematicBand() {
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
           className="max-w-2xl on-dark"
         >
-          <span className="eyebrow text-accent-soft">In every home</span>
+          <span className="eyebrow text-accent-soft">The details</span>
           <h2 className="h2 mt-4 text-white">
-            Cleaning you can see. Care you can feel.
+            We clean the parts most people skip.
           </h2>
           <p className="mt-4 max-w-lg text-brand-100/85">
-            Our team treats your home the way we would treat our own, with steady attention to the
-            spots most people miss.
+            Baseboards, window tracks, behind the taps, the tops of the doors. The gap between tidy
+            and genuinely clean is in the places you have stopped noticing.
           </p>
         </motion.div>
       </div>

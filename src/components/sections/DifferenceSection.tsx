@@ -11,17 +11,14 @@ export function DifferenceSection() {
       <div className="container-x section relative">
         <div className="grid items-center gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:gap-16">
           <Reveal>
-            <span className="eyebrow text-accent-soft">See the difference</span>
-            <h2 className="h2 mt-4 text-white">Clean you can actually see.</h2>
+            <span className="eyebrow text-accent-soft">Before &amp; after</span>
+            <h2 className="h2 mt-4 text-white">See the difference a real clean makes.</h2>
             <p className="lead mt-5 text-brand-100/80">
-              Drag the handle to see how much brighter a space feels once the glass and surfaces
-              are truly clean. More daylight, clearer views, and a home that feels cared for.
-            </p>
-            <p className="mt-4 text-sm text-brand-100/55">
-              Illustrative demonstration of the effect, not a photo of a specific customer&apos;s home.
+              Drag the handle. On the left, a typical starting point. On the right, what we hand
+              back: glass, surfaces, and the corners in between actually clean.
             </p>
             <Link href="/quote" className="btn btn-accent mt-8">
-              Get a Free Quote
+              Get a free quote
               <ArrowRight className="h-[1.05rem] w-[1.05rem]" strokeWidth={2} />
             </Link>
           </Reveal>

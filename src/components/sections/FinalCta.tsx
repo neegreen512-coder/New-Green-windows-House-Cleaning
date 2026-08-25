@@ -4,8 +4,8 @@ import { Reveal } from "@/components/motion";
 import { business } from "@/lib/site";
 
 export function FinalCta({
-  title = "Ready for a cleaner home and a brighter view?",
-  subtitle = "Tell us about your home and get a free, no-obligation quote. Every home is different, so we'll help you find the right service.",
+  title = "Let's get your home on the schedule.",
+  subtitle = "Send a few details about your place and we come back with a clear quote. No obligation, no sales pressure.",
 }: {
   title?: string;
   subtitle?: string;
@@ -23,7 +23,7 @@ export function FinalCta({
           <p className="lead mx-auto mt-5 max-w-xl text-brand-100/85">{subtitle}</p>
           <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link href="/quote" className="btn btn-accent btn-lg">
-              Get My Free Quote
+              Get a free quote
               <ArrowRight className="h-[1.05rem] w-[1.05rem]" strokeWidth={2} />
             </Link>
             <a href={business.phoneHref} className="btn btn-on-dark btn-lg">
