@@ -26,10 +26,10 @@ export function DifferenceSection() {
           <Reveal delay={0.1}>
             <BeforeAfter
               before={{
-                src: images.windowsView.src,
-                alt: "The same exterior window looking grimy and streaked before a New Green clean",
+                src: images.afterClean.src,
+                alt: "The same living room looking dull and dusty before a New Green clean",
               }}
-              after={images.windowsView}
+              after={images.afterClean}
               treatBefore
             />
           </Reveal>
