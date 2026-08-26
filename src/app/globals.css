@@ -279,14 +279,15 @@
 
   /* Outlined-on-photo secondary */
   .btn-outline-light {
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.18);
     color: #fff;
-    border: 1px solid rgba(255, 255, 255, 0.55);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
   .btn-outline-light:hover {
-    background: rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.3);
     border-color: #fff;
     transform: translateY(-2px);
   }

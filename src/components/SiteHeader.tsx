@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { List, Phone, X } from "@phosphor-icons/react/dist/ssr";
-import { Brand, LogoMark } from "./Brand";
+import { LogoMark } from "./Brand";
 import { business, nav } from "@/lib/site";
 
 function NavLink({ href, label }: { href: string; label: string }) {
@@ -110,7 +110,7 @@ export function SiteHeader() {
           }`}
         >
           <div className="flex h-[4.75rem] items-center justify-between border-b border-line px-5">
-            <Brand />
+            <HeaderLockup />
             <button
               type="button"
               onClick={() => setOpen(false)}

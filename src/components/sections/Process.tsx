@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   motion,
   useScroll,
@@ -13,9 +13,34 @@ import { Reveal } from "@/components/motion";
 import { Icon } from "@/components/icons";
 import { processSteps } from "@/lib/site";
 
+const useIsoLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
+
 export function Process() {
   const ref = useRef<HTMLDivElement>(null);
+  const olRef = useRef<HTMLOListElement>(null);
   const reduce = useReducedMotion();
+
+  // Measure the mobile rail so it spans exactly node 1 -> node 4 (no overshoot
+  // past the last icon, since the last step's text extends below its node).
+  const [mRail, setMRail] = useState<{ top: number; height: number } | null>(null);
+  useIsoLayoutEffect(() => {
+    const measure = () => {
+      const wrap = ref.current;
+      const ol = olRef.current;
+      if (!wrap || !ol) return;
+      const nodes = ol.querySelectorAll<HTMLElement>("[data-node]");
+      if (nodes.length < 2) return;
+      const wrapTop = wrap.getBoundingClientRect().top;
+      const first = nodes[0].getBoundingClientRect();
+      const last = nodes[nodes.length - 1].getBoundingClientRect();
+      const top = first.top + first.height / 2 - wrapTop;
+      const bottom = last.top + last.height / 2 - wrapTop;
+      setMRail({ top, height: Math.max(0, bottom - top) });
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
 
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -61,7 +86,8 @@ export function Process() {
             )}
           </div>
           <div
-            className="pointer-events-none absolute bottom-7 left-7 top-7 w-[2px] bg-ink/15 lg:hidden"
+            className="pointer-events-none absolute left-7 w-[2px] bg-ink/15 lg:hidden"
+            style={{ top: mRail?.top ?? 28, height: mRail?.height ?? 0 }}
             aria-hidden="true"
           >
             {!reduce && (
@@ -72,13 +98,14 @@ export function Process() {
             )}
           </div>
 
-          <ol className="flex flex-col gap-10 lg:flex-row lg:gap-0">
+          <ol ref={olRef} className="flex flex-col gap-10 lg:flex-row lg:gap-0">
             {processSteps.map((step, i) => {
               const on = lit(i);
               return (
                 <li key={step.n} className="relative lg:flex-1 lg:px-3">
                   <div className="flex items-start gap-4 lg:flex-col lg:items-center lg:gap-0 lg:text-center">
                     <div
+                      data-node
                       className={`relative z-10 grid h-14 w-14 shrink-0 place-items-center rounded-2xl ring-1 ring-ink/10 transition-all duration-500 ${
                         on
                           ? "scale-110 bg-ink text-white shadow-[0_16px_32px_-12px_rgba(10,18,14,0.7)]"

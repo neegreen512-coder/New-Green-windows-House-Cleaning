@@ -51,7 +51,7 @@ export function Hero() {
 
           <motion.p
             {...fade(0.16)}
-            className="mx-auto mt-6 max-w-xl text-[1.075rem] leading-relaxed text-white/85 sm:text-[1.18rem]"
+            className="mx-auto mt-6 max-w-xl text-[1.075rem] leading-relaxed text-white [text-shadow:0_1px_14px_rgba(0,0,0,0.6)] sm:text-[1.18rem]"
           >
             Premium window and house cleaning for homes across Mississauga and the GTA. Streak-free
             glass, spotless rooms, and a clear price before we start.

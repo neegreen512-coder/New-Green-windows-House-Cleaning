@@ -4,7 +4,6 @@ import { Geist, Geist_Mono, Outfit } from "next/font/google";
 import "./globals.css";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
-import { MobileQuoteBar } from "@/components/MobileQuoteBar";
 import { business, analytics } from "@/lib/site";
 
 const geistSans = Geist({
@@ -80,11 +79,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to content
         </a>
         <SiteHeader />
-        <main id="main" className="pb-[5.5rem] lg:pb-0">
+        <main id="main">
           {children}
         </main>
         <SiteFooter />
-        <MobileQuoteBar />
         {analytics.ga4Id && (
           <>
             <Script

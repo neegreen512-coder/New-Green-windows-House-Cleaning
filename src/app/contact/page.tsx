@@ -31,24 +31,24 @@ export default function ContactPage() {
         </div>
 
         <div className="mt-12 grid gap-10 lg:grid-cols-2 lg:gap-16">
-          <div>
+          <div className="min-w-0">
             <ul className="space-y-5">
               {items.map(({ icon: ItemIcon, label, value, href }) => (
                 <li key={label} className="flex items-start gap-4">
                   <span className="mt-0.5 grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-700 ring-1 ring-brand-100">
                     <ItemIcon className="h-5 w-5" strokeWidth={1.8} />
                   </span>
-                  <div>
+                  <div className="min-w-0">
                     <div className="label-mono">{label}</div>
                     {href ? (
                       <a
                         href={href}
-                        className="mt-1 block text-[1.05rem] font-medium text-ink hover:text-brand-800"
+                        className="mt-1 block break-words text-[1.05rem] font-medium text-ink hover:text-brand-800"
                       >
                         {value}
                       </a>
                     ) : (
-                      <div className="mt-1 text-[1.05rem] font-medium text-ink">{value}</div>
+                      <div className="mt-1 break-words text-[1.05rem] font-medium text-ink">{value}</div>
                     )}
                   </div>
                 </li>
