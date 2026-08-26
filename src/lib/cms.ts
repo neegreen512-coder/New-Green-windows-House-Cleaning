@@ -105,6 +105,75 @@ async function resizeImage(file: File, maxDim = 1280, quality = 0.72): Promise<B
   }
 }
 
+/* --------------------------------------------------------------- Blog ----- */
+
+export type CmsPost = {
+  id?: number;
+  slug: string;
+  title: string;
+  excerpt: string;
+  cover?: string;
+  tag?: string;
+  read_min?: number;
+  created_at?: string;
+  body?: string;
+};
+
+export async function getPosts(): Promise<CmsPost[]> {
+  try {
+    const res = await fetch(`${CMS_URL}/api/posts`, { next: { revalidate: 60 } });
+    const json = await res.json();
+    return json?.ok ? (json.data as CmsPost[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+export async function getPost(slug: string): Promise<CmsPost | null> {
+  try {
+    const res = await fetch(`${CMS_URL}/api/posts/${encodeURIComponent(slug)}`, {
+      next: { revalidate: 60 },
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json?.ok ? (json.data as CmsPost) : null;
+  } catch {
+    return null;
+  }
+}
+
+/* -------------------------------------------------------------- Gallery ---- */
+
+export type CmsGalleryItem = {
+  id: number;
+  before_url: string;
+  after_url: string;
+  caption: string;
+  service: string;
+};
+
+export async function getGallery(): Promise<CmsGalleryItem[]> {
+  try {
+    const res = await fetch(`${CMS_URL}/api/gallery`, { next: { revalidate: 60 } });
+    const json = await res.json();
+    return json?.ok ? (json.data as CmsGalleryItem[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+/* ------------------------------------------------ Settings / content ------- */
+
+export async function getSettings(): Promise<Record<string, string>> {
+  try {
+    const res = await fetch(`${CMS_URL}/api/content`, { cache: "no-store" });
+    const json = await res.json();
+    return json?.ok ? (json.data as Record<string, string>) : {};
+  } catch {
+    return {};
+  }
+}
+
 /** Upload an image to the CMS (stored in D1). Returns the served URL. */
 export async function uploadImage(file: File): Promise<string> {
   const blob = await resizeImage(file);

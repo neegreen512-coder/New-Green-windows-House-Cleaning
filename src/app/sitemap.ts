@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { business, services } from "@/lib/site";
+import { blogPosts } from "@/lib/blog";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = `https://${business.domain}`;
@@ -7,6 +8,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "",
     "/quote",
     "/pricing",
+    "/gallery",
+    "/blog",
     "/about",
     "/contact",
     "/faq",
@@ -14,6 +17,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/privacy",
     "/terms",
     ...services.map((s) => `/${s.slug}`),
+    ...blogPosts.map((p) => `/blog/${p.slug}`),
   ];
   const now = new Date();
   return paths.map((path) => ({

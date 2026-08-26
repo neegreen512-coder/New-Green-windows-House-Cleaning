@@ -7,7 +7,7 @@ import { Process } from "@/components/sections/Process";
 import { Pricing } from "@/components/sections/Pricing";
 import { Testimonials } from "@/components/sections/Testimonials";
 import { FinalCta } from "@/components/sections/FinalCta";
-import { business, services } from "@/lib/site";
+import { business, services, testimonials } from "@/lib/site";
 
 export default function HomePage() {
   const jsonLd = {
@@ -22,6 +22,15 @@ export default function HomePage() {
       "@type": "Offer",
       itemOffered: { "@type": "Service", name: s.title },
     })),
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: (
+        testimonials.reduce((sum, t) => sum + t.rating, 0) / testimonials.length
+      ).toFixed(1),
+      reviewCount: testimonials.length,
+      bestRating: 5,
+      worstRating: 1,
+    },
   };
 
   return (

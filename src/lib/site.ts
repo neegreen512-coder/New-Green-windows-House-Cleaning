@@ -208,6 +208,8 @@ export const nav = {
   services: services.map((s) => ({ label: s.navLabel, href: `/${s.slug}` })),
   main: [
     { label: "Pricing", href: "/pricing" },
+    { label: "Gallery", href: "/gallery" },
+    { label: "Blog", href: "/blog" },
     { label: "About", href: "/about" },
     { label: "Service Areas", href: "/service-areas" },
     { label: "FAQ", href: "/faq" },

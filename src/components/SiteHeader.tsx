@@ -64,7 +64,7 @@ export function SiteHeader() {
   }, [open]);
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50">
+    <header className="fixed inset-x-0 z-50" style={{ top: "var(--ng-banner-h, 0px)" }}>
       <div className="container-x pt-3 sm:pt-4">
         <div
           className={`relative rounded-2xl border px-4 transition-all duration-300 sm:px-5 ${

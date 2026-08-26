@@ -67,9 +67,35 @@ app.get("/media/:id", async (c) => {
 
 app.get("/api/reviews", async (c) => {
   const { results } = await c.env.DB.prepare(
-    "SELECT id, name, context, service, quote, rating, avatar, photos, created_at FROM reviews WHERE status = 'approved' ORDER BY created_at DESC LIMIT 60"
+    "SELECT id, name, context, service, quote, rating, avatar, photos, featured, created_at FROM reviews WHERE status = 'approved' ORDER BY featured DESC, sort ASC, created_at DESC LIMIT 60"
   ).all<Record<string, unknown>>();
-  return c.json(ok(results.map((r) => ({ ...r, photos: safeJson(r.photos) }))));
+  return c.json(ok(results.map((r) => ({ ...r, featured: !!r.featured, photos: safeJson(r.photos) }))));
+});
+
+// Before / after gallery (public).
+app.get("/api/gallery", async (c) => {
+  const { results } = await c.env.DB.prepare(
+    "SELECT id, before_url, after_url, caption, service FROM gallery ORDER BY sort ASC, id DESC"
+  ).all();
+  return c.json(ok(results));
+});
+
+// Blog posts (public): list without body, then single by slug.
+app.get("/api/posts", async (c) => {
+  const { results } = await c.env.DB.prepare(
+    "SELECT id, slug, title, excerpt, cover, tag, read_min, created_at FROM posts WHERE published = 1 ORDER BY created_at DESC"
+  ).all();
+  return c.json(ok(results));
+});
+
+app.get("/api/posts/:slug", async (c) => {
+  const row = await c.env.DB.prepare(
+    "SELECT id, slug, title, excerpt, body, cover, tag, read_min, created_at FROM posts WHERE slug = ? AND published = 1"
+  )
+    .bind(c.req.param("slug"))
+    .first();
+  if (!row) return c.json({ ok: false, error: "Not found" }, 404);
+  return c.json(ok(row));
 });
 
 // Public review submission -> stored as pending for the owner to approve.
@@ -217,11 +243,49 @@ admin.post("/reviews", async (c) => {
   return c.json(ok({ created: true }));
 });
 
+// Partial update: status, featured, and/or sort (used by approve / pin / reorder).
 admin.patch("/reviews/:id", async (c) => {
   const b = await c.req.json().catch(() => ({}));
-  const status = b.status === "approved" ? "approved" : "pending";
-  await c.env.DB.prepare("UPDATE reviews SET status = ? WHERE id = ?")
-    .bind(status, c.req.param("id"))
+  const sets: string[] = [];
+  const vals: unknown[] = [];
+  if (b.status !== undefined) {
+    sets.push("status = ?");
+    vals.push(b.status === "approved" ? "approved" : "pending");
+  }
+  if (b.featured !== undefined) {
+    sets.push("featured = ?");
+    vals.push(b.featured ? 1 : 0);
+  }
+  if (b.sort !== undefined) {
+    sets.push("sort = ?");
+    vals.push(clamp(b.sort, 0, 9999, 0));
+  }
+  if (!sets.length) return c.json(ok({ updated: false }));
+  vals.push(c.req.param("id"));
+  await c.env.DB.prepare(`UPDATE reviews SET ${sets.join(", ")} WHERE id = ?`)
+    .bind(...vals)
+    .run();
+  return c.json(ok({ updated: true }));
+});
+
+// Full edit of a review's content.
+admin.put("/reviews/:id", async (c) => {
+  const b = await c.req.json().catch(() => ({}));
+  const photos = Array.isArray(b.photos) ? b.photos.slice(0, 6).map((p: unknown) => str(p, 400)) : [];
+  await c.env.DB.prepare(
+    "UPDATE reviews SET name=?, context=?, service=?, quote=?, rating=?, status=?, avatar=?, photos=? WHERE id=?"
+  )
+    .bind(
+      str(b.name, 80),
+      str(b.context, 80),
+      str(b.service, 60),
+      str(b.quote, 1200),
+      clamp(b.rating, 1, 5, 5),
+      b.status === "approved" ? "approved" : "pending",
+      str(b.avatar, 400),
+      JSON.stringify(photos),
+      c.req.param("id")
+    )
     .run();
   return c.json(ok({ updated: true }));
 });
@@ -239,11 +303,23 @@ admin.get("/quotes", async (c) => {
   return c.json(ok(results));
 });
 
+const QUOTE_STATUSES = ["new", "handled", "won", "lost"];
 admin.patch("/quotes/:id", async (c) => {
   const b = await c.req.json().catch(() => ({}));
-  const status = b.status === "handled" ? "handled" : "new";
-  await c.env.DB.prepare("UPDATE quotes SET status = ? WHERE id = ?")
-    .bind(status, c.req.param("id"))
+  const sets: string[] = [];
+  const vals: unknown[] = [];
+  if (b.status !== undefined) {
+    sets.push("status = ?");
+    vals.push(QUOTE_STATUSES.includes(b.status) ? b.status : "new");
+  }
+  if (b.admin_notes !== undefined) {
+    sets.push("admin_notes = ?");
+    vals.push(str(b.admin_notes, 2000));
+  }
+  if (!sets.length) return c.json(ok({ updated: false }));
+  vals.push(c.req.param("id"));
+  await c.env.DB.prepare(`UPDATE quotes SET ${sets.join(", ")} WHERE id = ?`)
+    .bind(...vals)
     .run();
   return c.json(ok({ updated: true }));
 });
@@ -263,9 +339,20 @@ admin.get("/messages", async (c) => {
 
 admin.patch("/messages/:id", async (c) => {
   const b = await c.req.json().catch(() => ({}));
-  const status = b.status === "handled" ? "handled" : "new";
-  await c.env.DB.prepare("UPDATE messages SET status = ? WHERE id = ?")
-    .bind(status, c.req.param("id"))
+  const sets: string[] = [];
+  const vals: unknown[] = [];
+  if (b.status !== undefined) {
+    sets.push("status = ?");
+    vals.push(b.status === "handled" ? "handled" : "new");
+  }
+  if (b.admin_notes !== undefined) {
+    sets.push("admin_notes = ?");
+    vals.push(str(b.admin_notes, 2000));
+  }
+  if (!sets.length) return c.json(ok({ updated: false }));
+  vals.push(c.req.param("id"));
+  await c.env.DB.prepare(`UPDATE messages SET ${sets.join(", ")} WHERE id = ?`)
+    .bind(...vals)
     .run();
   return c.json(ok({ updated: true }));
 });
@@ -340,6 +427,100 @@ admin.delete("/pricing/:id", async (c) => {
   return c.json(ok({ deleted: true }));
 });
 
+// Gallery (before / after)
+admin.get("/gallery", async (c) => {
+  const { results } = await c.env.DB.prepare("SELECT * FROM gallery ORDER BY sort ASC, id DESC").all();
+  return c.json(ok(results));
+});
+admin.post("/gallery", async (c) => {
+  const b = await c.req.json().catch(() => ({}));
+  await c.env.DB.prepare(
+    "INSERT INTO gallery (before_url, after_url, caption, service, sort) VALUES (?, ?, ?, ?, ?)"
+  )
+    .bind(str(b.before_url, 400), str(b.after_url, 400), str(b.caption, 200), str(b.service, 60), clamp(b.sort, 0, 999, 0))
+    .run();
+  return c.json(ok({ created: true }));
+});
+admin.put("/gallery/:id", async (c) => {
+  const b = await c.req.json().catch(() => ({}));
+  await c.env.DB.prepare(
+    "UPDATE gallery SET before_url=?, after_url=?, caption=?, service=?, sort=? WHERE id=?"
+  )
+    .bind(
+      str(b.before_url, 400),
+      str(b.after_url, 400),
+      str(b.caption, 200),
+      str(b.service, 60),
+      clamp(b.sort, 0, 999, 0),
+      c.req.param("id")
+    )
+    .run();
+  return c.json(ok({ updated: true }));
+});
+admin.delete("/gallery/:id", async (c) => {
+  await c.env.DB.prepare("DELETE FROM gallery WHERE id = ?").bind(c.req.param("id")).run();
+  return c.json(ok({ deleted: true }));
+});
+
+// Blog posts
+const slugify = (s: string) =>
+  s
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "")
+    .slice(0, 80);
+
+admin.get("/posts", async (c) => {
+  const { results } = await c.env.DB.prepare("SELECT * FROM posts ORDER BY created_at DESC").all();
+  return c.json(ok(results));
+});
+admin.post("/posts", async (c) => {
+  const b = await c.req.json().catch(() => ({}));
+  const title = str(b.title, 160).trim();
+  if (title.length < 3) return c.json({ ok: false, error: "A title is required." }, 400);
+  let slug = (str(b.slug, 80).trim() && slugify(str(b.slug, 80))) || slugify(title) || `post-${Date.now()}`;
+  const exists = await c.env.DB.prepare("SELECT id FROM posts WHERE slug = ?").bind(slug).first();
+  if (exists) slug = `${slug}-${Date.now().toString().slice(-5)}`;
+  await c.env.DB.prepare(
+    "INSERT INTO posts (slug, title, excerpt, body, cover, tag, read_min, published) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+  )
+    .bind(
+      slug,
+      title,
+      str(b.excerpt, 300),
+      str(b.body, 20000),
+      str(b.cover, 400),
+      str(b.tag, 40),
+      clamp(b.read_min, 1, 60, 4),
+      b.published === false ? 0 : 1
+    )
+    .run();
+  return c.json(ok({ created: true, slug }));
+});
+admin.put("/posts/:id", async (c) => {
+  const b = await c.req.json().catch(() => ({}));
+  await c.env.DB.prepare(
+    "UPDATE posts SET title=?, excerpt=?, body=?, cover=?, tag=?, read_min=?, published=?, updated_at=datetime('now') WHERE id=?"
+  )
+    .bind(
+      str(b.title, 160),
+      str(b.excerpt, 300),
+      str(b.body, 20000),
+      str(b.cover, 400),
+      str(b.tag, 40),
+      clamp(b.read_min, 1, 60, 4),
+      b.published === false ? 0 : 1,
+      c.req.param("id")
+    )
+    .run();
+  return c.json(ok({ updated: true }));
+});
+admin.delete("/posts/:id", async (c) => {
+  await c.env.DB.prepare("DELETE FROM posts WHERE id = ?").bind(c.req.param("id")).run();
+  return c.json(ok({ deleted: true }));
+});
+
 // Content (editable text blocks)
 admin.get("/content", async (c) => {
   const { results } = await c.env.DB.prepare("SELECT key, value FROM content").all<{
@@ -355,7 +536,7 @@ admin.put("/content", async (c) => {
   const stmts = Object.entries(b).map(([k, v]) =>
     c.env.DB.prepare(
       "INSERT INTO content (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value"
-    ).bind(str(k, 60), str(v, 4000))
+    ).bind(str(k, 60), str(v, 20000))
   );
   if (stmts.length) await c.env.DB.batch(stmts);
   return c.json(ok({ saved: true }));
