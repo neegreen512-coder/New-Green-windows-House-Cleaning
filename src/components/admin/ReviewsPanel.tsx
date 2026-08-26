@@ -19,6 +19,7 @@ export function ReviewsPanel() {
   const [newAvatar, setNewAvatar] = useState("");
   const [newPhotos, setNewPhotos] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [editing, setEditing] = useState<number | null>(null);
 
   async function handleFiles(files: FileList | null, mode: "avatar" | "photos") {
     if (!files || files.length === 0) return;
@@ -225,81 +226,156 @@ export function ReviewsPanel() {
           </div>
         ) : (
           <ul className="space-y-3">
-            {items.map((r) => (
-              <li key={r.id} className="card p-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex min-w-0 gap-3">
-                    {r.avatar && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={r.avatar}
-                        alt=""
-                        className="h-10 w-10 shrink-0 rounded-full object-cover ring-1 ring-line"
-                      />
-                    )}
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-ink">{r.name}</span>
-                        <span
-                          className={`label-mono ${
-                            r.status === "approved" ? "text-brand-700" : "text-[var(--color-warning)]"
-                          }`}
-                        >
-                          {r.status}
-                        </span>
-                      </div>
-                      <div className="text-xs text-muted">
-                        {[r.context, r.service, `${r.rating} star`].filter(Boolean).join("  ·  ")}
-                      </div>
-                      <p className="mt-2 text-sm leading-relaxed text-ink/85">{r.quote}</p>
-                      {r.photos && r.photos.length > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          {r.photos.map((p) => (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              key={p}
-                              src={p}
-                              alt=""
-                              className="h-14 w-14 rounded-lg object-cover ring-1 ring-line"
-                            />
-                          ))}
-                        </div>
+            {items.map((r) =>
+              editing === r.id ? (
+                <li key={r.id} className="card p-4">
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const f = new FormData(e.currentTarget);
+                      act(
+                        () =>
+                          adminApi
+                            .updateReview(r.id, {
+                              name: String(f.get("name") || ""),
+                              context: String(f.get("context") || ""),
+                              service: String(f.get("service") || ""),
+                              rating: Number(f.get("rating") || 5),
+                              quote: String(f.get("quote") || ""),
+                              status: r.status,
+                              avatar: r.avatar,
+                              photos: r.photos,
+                            })
+                            .then(() => setEditing(null)),
+                        r.id
+                      );
+                    }}
+                  >
+                    <div className="grid gap-3 sm:grid-cols-3">
+                      <input name="name" defaultValue={r.name} className={fieldClass} placeholder="Name" />
+                      <input name="context" defaultValue={r.context} className={fieldClass} placeholder="Neighbourhood" />
+                      <input name="service" defaultValue={r.service} className={fieldClass} placeholder="Service" />
+                    </div>
+                    <textarea name="quote" defaultValue={r.quote} rows={3} className={`${fieldClass} mt-3`} />
+                    <div className="mt-3 flex items-center gap-3">
+                      <select name="rating" defaultValue={String(r.rating)} className={`${fieldClass} w-28`}>
+                        {[5, 4, 3, 2, 1].map((n) => (
+                          <option key={n} value={n}>
+                            {n} star
+                          </option>
+                        ))}
+                      </select>
+                      <button disabled={busy === r.id} className="btn btn-primary px-4 py-2 text-sm disabled:opacity-60">
+                        Save
+                      </button>
+                      <button type="button" onClick={() => setEditing(null)} className="btn btn-secondary px-3 py-2 text-sm">
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                </li>
+              ) : (
+                <li key={r.id} className="card p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex min-w-0 gap-3">
+                      {r.avatar && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={r.avatar}
+                          alt=""
+                          className="h-10 w-10 shrink-0 rounded-full object-cover ring-1 ring-line"
+                        />
                       )}
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-ink">{r.name}</span>
+                          {r.featured ? <span className="label-mono text-accent">★ featured</span> : null}
+                          <span
+                            className={`label-mono ${
+                              r.status === "approved" ? "text-brand-700" : "text-[var(--color-warning)]"
+                            }`}
+                          >
+                            {r.status}
+                          </span>
+                        </div>
+                        <div className="text-xs text-muted">
+                          {[r.context, r.service, `${r.rating} star`].filter(Boolean).join("  ·  ")}
+                        </div>
+                        <p className="mt-2 text-sm leading-relaxed text-ink/85">{r.quote}</p>
+                        {r.photos && r.photos.length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {r.photos.map((p) => (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                key={p}
+                                src={p}
+                                alt=""
+                                className="h-14 w-14 rounded-lg object-cover ring-1 ring-line"
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex shrink-0 flex-col items-stretch gap-2">
+                      {r.status === "pending" ? (
+                        <button
+                          disabled={busy === r.id}
+                          onClick={() => act(() => adminApi.setReviewStatus(r.id, "approved"), r.id)}
+                          className="btn btn-primary px-3 py-1.5 text-sm disabled:opacity-60"
+                        >
+                          Approve
+                        </button>
+                      ) : (
+                        <button
+                          disabled={busy === r.id}
+                          onClick={() => act(() => adminApi.setReviewStatus(r.id, "pending"), r.id)}
+                          className="btn btn-secondary px-3 py-1.5 text-sm disabled:opacity-60"
+                        >
+                          Unapprove
+                        </button>
+                      )}
+                      <button
+                        disabled={busy === r.id}
+                        onClick={() => act(() => adminApi.patchReview(r.id, { featured: !r.featured }), r.id)}
+                        className="btn btn-ghost px-3 py-1.5 text-sm disabled:opacity-60"
+                      >
+                        {r.featured ? "Unfeature" : "Feature"}
+                      </button>
+                      <div className="flex items-center justify-end gap-1 text-xs text-muted">
+                        Order
+                        <input
+                          type="number"
+                          defaultValue={r.sort ?? 0}
+                          onBlur={(e) => act(() => adminApi.patchReview(r.id, { sort: Number(e.target.value) }), r.id)}
+                          className="w-14 rounded-lg border border-line-strong bg-bg px-2 py-1 text-sm text-ink outline-none focus:border-brand-600"
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          disabled={busy === r.id}
+                          onClick={() => setEditing(r.id)}
+                          className="btn btn-secondary px-3 py-1.5 text-sm disabled:opacity-60"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          disabled={busy === r.id}
+                          onClick={() => {
+                            if (window.confirm("Delete this review?")) {
+                              act(() => adminApi.deleteReview(r.id), r.id);
+                            }
+                          }}
+                          className="btn btn-ghost px-3 py-1.5 text-sm text-[var(--color-error)] disabled:opacity-60"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex shrink-0 flex-col gap-2">
-                    {r.status === "pending" ? (
-                      <button
-                        disabled={busy === r.id}
-                        onClick={() => act(() => adminApi.setReviewStatus(r.id, "approved"), r.id)}
-                        className="btn btn-primary px-3 py-1.5 text-sm disabled:opacity-60"
-                      >
-                        Approve
-                      </button>
-                    ) : (
-                      <button
-                        disabled={busy === r.id}
-                        onClick={() => act(() => adminApi.setReviewStatus(r.id, "pending"), r.id)}
-                        className="btn btn-secondary px-3 py-1.5 text-sm disabled:opacity-60"
-                      >
-                        Unapprove
-                      </button>
-                    )}
-                    <button
-                      disabled={busy === r.id}
-                      onClick={() => {
-                        if (window.confirm("Delete this review?")) {
-                          act(() => adminApi.deleteReview(r.id), r.id);
-                        }
-                      }}
-                      className="btn btn-ghost px-3 py-1.5 text-sm text-[var(--color-error)] disabled:opacity-60"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              </li>
-            ))}
+                </li>
+              )
+            )}
           </ul>
         )}
       </div>

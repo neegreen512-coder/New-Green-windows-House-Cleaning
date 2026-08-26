@@ -8,11 +8,29 @@ function msg(e: unknown) {
 }
 
 function StatusPill({ status }: { status: string }) {
-  return (
-    <span className={`label-mono ${status === "new" ? "text-[var(--color-warning)]" : "text-brand-700"}`}>
-      {status}
-    </span>
-  );
+  const color =
+    status === "new"
+      ? "text-[var(--color-warning)]"
+      : status === "won"
+        ? "text-brand-700"
+        : status === "lost"
+          ? "text-[var(--color-error)]"
+          : "text-muted";
+  return <span className={`label-mono ${color}`}>{status}</span>;
+}
+
+function csvCell(v: unknown) {
+  return `"${String(v ?? "").replace(/"/g, '""')}"`;
+}
+function downloadCsv(name: string, rows: unknown[][]) {
+  const content = rows.map((r) => r.map(csvCell).join(",")).join("\r\n");
+  const blob = new Blob(["﻿" + content], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function Group({
@@ -72,6 +90,48 @@ export function LeadsPanel() {
     }
   }
 
+  function exportCsv() {
+    const header = [
+      "Type",
+      "Date",
+      "Name",
+      "Email",
+      "Phone",
+      "Status",
+      "Details",
+      "Address",
+      "Visitor notes",
+      "Owner notes",
+    ];
+    const qRows = (quotes || []).map((q) => [
+      "Quote",
+      q.created_at || "",
+      q.name,
+      q.email,
+      q.phone,
+      q.status,
+      [q.services, q.property_type, q.bedrooms && `${q.bedrooms} bed`, q.bathrooms && `${q.bathrooms} bath`, q.frequency]
+        .filter(Boolean)
+        .join(" | "),
+      q.address,
+      q.notes,
+      q.admin_notes || "",
+    ]);
+    const mRows = (messages || []).map((m) => [
+      "Message",
+      m.created_at || "",
+      m.name,
+      m.email,
+      m.phone,
+      m.status,
+      m.message,
+      "",
+      "",
+      m.admin_notes || "",
+    ]);
+    downloadCsv(`newgreen-leads-${new Date().toISOString().slice(0, 10)}.csv`, [header, ...qRows, ...mRows]);
+  }
+
   const renderQuote = (q: AdminQuote) => {
     const key = `q${q.id}`;
     return (
@@ -98,8 +158,17 @@ export function LeadsPanel() {
             </div>
             {q.address && <div className="mt-1 text-sm text-muted">{q.address}</div>}
             {q.notes && <p className="mt-2 text-sm leading-relaxed text-ink/85">{q.notes}</p>}
+            <textarea
+              defaultValue={q.admin_notes || ""}
+              onBlur={(e) => {
+                if (e.target.value !== (q.admin_notes || "")) act(() => adminApi.setQuoteNotes(q.id, e.target.value), key);
+              }}
+              placeholder="Private notes for your team..."
+              rows={2}
+              className="mt-3 w-full rounded-lg border border-line-strong bg-bg px-3 py-2 text-xs text-ink outline-none focus:border-brand-600"
+            />
           </div>
-          <div className="flex shrink-0 flex-col gap-2">
+          <div className="flex shrink-0 flex-col items-stretch gap-2">
             {q.status === "new" ? (
               <button
                 disabled={busy === key}
@@ -117,6 +186,22 @@ export function LeadsPanel() {
                 Reopen
               </button>
             )}
+            <div className="flex gap-2">
+              <button
+                disabled={busy === key}
+                onClick={() => act(() => adminApi.setQuoteStatus(q.id, "won"), key)}
+                className="btn btn-secondary flex-1 px-2.5 py-1.5 text-xs disabled:opacity-60"
+              >
+                Won
+              </button>
+              <button
+                disabled={busy === key}
+                onClick={() => act(() => adminApi.setQuoteStatus(q.id, "lost"), key)}
+                className="btn btn-ghost flex-1 px-2.5 py-1.5 text-xs text-[var(--color-error)] disabled:opacity-60"
+              >
+                Lost
+              </button>
+            </div>
             <button
               disabled={busy === key}
               onClick={() => {
@@ -148,6 +233,15 @@ export function LeadsPanel() {
               {[m.email, m.phone].filter(Boolean).join("  ·  ")}
             </div>
             <p className="mt-2 text-sm leading-relaxed text-ink/85">{m.message}</p>
+            <textarea
+              defaultValue={m.admin_notes || ""}
+              onBlur={(e) => {
+                if (e.target.value !== (m.admin_notes || "")) act(() => adminApi.setMessageNotes(m.id, e.target.value), key);
+              }}
+              placeholder="Private notes for your team..."
+              rows={2}
+              className="mt-3 w-full rounded-lg border border-line-strong bg-bg px-3 py-2 text-xs text-ink outline-none focus:border-brand-600"
+            />
           </div>
           <div className="flex shrink-0 flex-col gap-2">
             {m.status === "new" ? (
@@ -192,6 +286,18 @@ export function LeadsPanel() {
   return (
     <div className="space-y-10">
       {err && <p className="text-sm text-[var(--color-error)]">{err}</p>}
+
+      <div className="flex items-center justify-between gap-4">
+        <p className="text-sm text-muted">Every lead is kept as a permanent record.</p>
+        <button
+          type="button"
+          onClick={exportCsv}
+          disabled={!quotes && !messages}
+          className="btn btn-secondary shrink-0 px-3 py-1.5 text-sm disabled:opacity-60"
+        >
+          Export CSV
+        </button>
+      </div>
 
       <section>
         <div className="mb-1 flex items-center justify-between">

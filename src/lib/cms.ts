@@ -166,12 +166,36 @@ export async function getGallery(): Promise<CmsGalleryItem[]> {
 
 export async function getSettings(): Promise<Record<string, string>> {
   try {
-    const res = await fetch(`${CMS_URL}/api/content`, { cache: "no-store" });
+    const res = await fetch(`${CMS_URL}/api/content`, { next: { revalidate: 60 } });
     const json = await res.json();
     return json?.ok ? (json.data as Record<string, string>) : {};
   } catch {
     return {};
   }
+}
+
+/** Merge owner-edited business details over the code defaults. */
+export function mergeBusiness<T extends Record<string, unknown>>(
+  base: T,
+  settings: Record<string, string>
+): T & { phoneHref: string; emailHref: string } {
+  let over: Record<string, string> = {};
+  try {
+    over = settings.business ? JSON.parse(settings.business) : {};
+  } catch {
+    over = {};
+  }
+  const phone = over.phone || (base.phone as string);
+  const email = over.email || (base.email as string);
+  return {
+    ...base,
+    phone,
+    email,
+    hours: over.hours || (base.hours as string),
+    address: over.address || (base.address as string),
+    phoneHref: `tel:${phone.replace(/[^\d+]/g, "")}`,
+    emailHref: `mailto:${email}`,
+  };
 }
 
 /** Upload an image to the CMS (stored in D1). Returns the served URL. */

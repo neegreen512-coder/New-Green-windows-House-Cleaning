@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Phone, Mail, MapPin, Clock } from "lucide-react";
 import { ContactForm } from "@/components/ContactForm";
 import { business } from "@/lib/site";
+import { getSettings, mergeBusiness } from "@/lib/cms";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -10,14 +11,17 @@ export const metadata: Metadata = {
   alternates: { canonical: "/contact" },
 };
 
-const items = [
-  { icon: Phone, label: "Phone", value: business.phone, href: business.phoneHref },
-  { icon: Mail, label: "Email", value: business.email, href: business.emailHref },
-  { icon: MapPin, label: "Address", value: business.address, href: undefined },
-  { icon: Clock, label: "Hours", value: business.hours, href: undefined },
-];
+export const revalidate = 60;
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const biz = mergeBusiness(business, await getSettings());
+  const items = [
+    { icon: Phone, label: "Phone", value: biz.phone, href: biz.phoneHref },
+    { icon: Mail, label: "Email", value: biz.email, href: biz.emailHref },
+    { icon: MapPin, label: "Address", value: biz.address, href: undefined },
+    { icon: Clock, label: "Hours", value: biz.hours, href: undefined },
+  ];
+
   return (
     <section className="relative overflow-hidden">
       <div className="container-x pb-14 pt-28 lg:pb-16 lg:pt-32">

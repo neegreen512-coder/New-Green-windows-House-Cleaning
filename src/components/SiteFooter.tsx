@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Clock, Mail, MapPin, Phone, Star } from "lucide-react";
 import { Brand } from "./Brand";
 import { business, nav } from "@/lib/site";
+import { getSettings, mergeBusiness } from "@/lib/cms";
 
 /* Brand glyphs — lucide removed social/brand icons, so these are inline. */
 function InstagramGlyph({ className }: { className?: string }) {
@@ -21,8 +22,9 @@ function FacebookGlyph({ className }: { className?: string }) {
   );
 }
 
-export function SiteFooter() {
+export async function SiteFooter() {
   const year = new Date().getFullYear();
+  const biz = mergeBusiness(business, await getSettings());
 
   return (
     <footer className="relative overflow-hidden bg-brand-950 on-dark">
@@ -70,24 +72,24 @@ export function SiteFooter() {
             </h3>
             <ul className="mt-5 space-y-3.5 text-[0.95rem] text-brand-100/85">
               <li>
-                <a href={business.phoneHref} className="inline-flex items-center gap-2.5 hover:text-white">
+                <a href={biz.phoneHref} className="inline-flex items-center gap-2.5 hover:text-white">
                   <Phone className="h-4 w-4 text-accent-soft" strokeWidth={1.8} />
-                  {business.phone}
+                  {biz.phone}
                 </a>
               </li>
               <li>
-                <a href={business.emailHref} className="inline-flex items-center gap-2.5 hover:text-white">
+                <a href={biz.emailHref} className="inline-flex items-center gap-2.5 hover:text-white">
                   <Mail className="h-4 w-4 text-accent-soft" strokeWidth={1.8} />
-                  {business.email}
+                  {biz.email}
                 </a>
               </li>
               <li className="inline-flex items-start gap-2.5">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-accent-soft" strokeWidth={1.8} />
-                <span>{business.address}</span>
+                <span>{biz.address}</span>
               </li>
               <li className="inline-flex items-start gap-2.5">
                 <Clock className="mt-0.5 h-4 w-4 shrink-0 text-accent-soft" strokeWidth={1.8} />
-                <span>{business.hours}</span>
+                <span>{biz.hours}</span>
               </li>
             </ul>
           </div>

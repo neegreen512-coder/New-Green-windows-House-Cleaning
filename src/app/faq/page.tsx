@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Faq } from "@/components/Faq";
 import { CtaBand } from "@/components/CtaBand";
-import { faqCategories, business } from "@/lib/site";
+import { faqCategories, business, type Faq as FaqItem } from "@/lib/site";
+import { getSettings, mergeBusiness } from "@/lib/cms";
 
 export const metadata: Metadata = {
   title: "FAQ",
@@ -10,7 +11,20 @@ export const metadata: Metadata = {
   alternates: { canonical: "/faq" },
 };
 
-export default function FaqPage() {
+export const revalidate = 60;
+
+export default async function FaqPage() {
+  const settings = await getSettings();
+  const biz = mergeBusiness(business, settings);
+
+  let override: FaqItem[] = [];
+  try {
+    const parsed = settings.faqs ? JSON.parse(settings.faqs) : [];
+    if (Array.isArray(parsed)) override = parsed.filter((f) => f?.q && f?.a);
+  } catch {
+    override = [];
+  }
+
   return (
     <>
       {/* Hero */}
@@ -20,14 +34,14 @@ export default function FaqPage() {
             <span className="eyebrow eyebrow--center justify-center">FAQ</span>
             <h1 className="h1 mt-4">Questions, answered.</h1>
             <p className="lead mt-5">
-              Everything worth knowing before you book, grouped so you can find it fast. If your
-              question isn&apos;t here, we&apos;re a phone call away.
+              Everything worth knowing before you book. If your question isn&apos;t here, we&apos;re a
+              phone call away.
             </p>
           </div>
         </div>
       </section>
 
-      {/* Categorised FAQs + contact sidebar */}
+      {/* FAQs + contact sidebar */}
       <section className="section pt-4">
         <div className="container-x grid gap-10 lg:grid-cols-[0.78fr_1.22fr] lg:gap-16">
           <aside className="h-fit lg:sticky lg:top-28">
@@ -38,17 +52,17 @@ export default function FaqPage() {
                 pressure and no obligation.
               </p>
               <div className="mt-6 space-y-3">
-                <a href={business.phoneHref} className="btn btn-primary w-full">
-                  Call {business.phone}
+                <a href={biz.phoneHref} className="btn btn-primary w-full">
+                  Call {biz.phone}
                 </a>
-                <a href={business.emailHref} className="btn btn-secondary w-full">
+                <a href={biz.emailHref} className="btn btn-secondary w-full">
                   Email us
                 </a>
               </div>
               <dl className="mt-7 space-y-3 border-t border-line pt-6 text-[0.9rem]">
                 <div className="flex justify-between gap-4">
                   <dt className="text-muted">Hours</dt>
-                  <dd className="text-right font-medium text-ink">{business.hours}</dd>
+                  <dd className="text-right font-medium text-ink">{biz.hours}</dd>
                 </div>
                 <div className="flex justify-between gap-4">
                   <dt className="text-muted">Serving</dt>
@@ -58,21 +72,23 @@ export default function FaqPage() {
             </div>
           </aside>
 
-          <div className="space-y-12">
-            {faqCategories.map((cat, ci) => (
-              <div key={cat.title}>
-                <div className="flex items-baseline gap-3">
-                  <span className="label-mono text-ink/50">
-                    {String(ci + 1).padStart(2, "0")}
-                  </span>
-                  <h2 className="text-[1.4rem] font-semibold text-ink">{cat.title}</h2>
+          {override.length > 0 ? (
+            <Faq items={override} defaultOpen={0} />
+          ) : (
+            <div className="space-y-12">
+              {faqCategories.map((cat, ci) => (
+                <div key={cat.title}>
+                  <div className="flex items-baseline gap-3">
+                    <span className="label-mono text-ink/50">{String(ci + 1).padStart(2, "0")}</span>
+                    <h2 className="text-[1.4rem] font-semibold text-ink">{cat.title}</h2>
+                  </div>
+                  <div className="mt-5">
+                    <Faq items={cat.items} defaultOpen={ci === 0 ? 0 : null} />
+                  </div>
                 </div>
-                <div className="mt-5">
-                  <Faq items={cat.items} defaultOpen={ci === 0 ? 0 : null} />
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
