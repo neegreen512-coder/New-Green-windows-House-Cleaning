@@ -24,7 +24,15 @@ const cmsOrigin = (() => {
 })();
 
 const TURNSTILE = "https://challenges.cloudflare.com";
-const GA = "https://www.googletagmanager.com https://www.google-analytics.com";
+// Google Analytics 4 / Google Ads beacons fan out across several hosts, and
+// Cloudflare auto-injects its Web Analytics beacon. These lists keep both
+// working under the CSP.
+const GTM = "https://www.googletagmanager.com";
+const CF_INSIGHTS = "https://static.cloudflareinsights.com";
+const ANALYTICS_CONNECT =
+  "https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://region1.google-analytics.com https://stats.g.doubleclick.net https://*.g.doubleclick.net https://cloudflareinsights.com";
+const ANALYTICS_IMG =
+  "https://www.google-analytics.com https://*.google-analytics.com https://*.g.doubleclick.net https://www.google.com";
 
 const csp = [
   `default-src 'self'`,
@@ -32,12 +40,12 @@ const csp = [
   `object-src 'none'`,
   `frame-ancestors 'none'`,
   `form-action 'self'`,
-  `img-src 'self' data: blob: https://images.unsplash.com ${GA} ${cmsOrigin}`,
+  `img-src 'self' data: blob: https://images.unsplash.com ${GTM} ${ANALYTICS_IMG} ${cmsOrigin}`,
   // 'unsafe-eval' + ws: are dev-only (React Refresh / HMR); never shipped to prod.
-  `script-src 'self' 'unsafe-inline' ${isDev ? "'unsafe-eval'" : ""} ${GA} ${TURNSTILE}`,
+  `script-src 'self' 'unsafe-inline' ${isDev ? "'unsafe-eval'" : ""} ${GTM} ${CF_INSIGHTS} ${TURNSTILE}`,
   `style-src 'self' 'unsafe-inline'`,
   `font-src 'self' data:`,
-  `connect-src 'self' ${GA} https://region1.google-analytics.com ${TURNSTILE} ${cmsOrigin}${
+  `connect-src 'self' ${GTM} ${ANALYTICS_CONNECT} ${TURNSTILE} ${cmsOrigin}${
     isDev ? " ws: http://localhost:*" : ""
   }`,
   `frame-src ${TURNSTILE}`,
