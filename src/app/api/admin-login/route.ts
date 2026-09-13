@@ -4,13 +4,72 @@ import { makeSessionToken, ADMIN_COOKIE, ADMIN_MAX_AGE } from "@/lib/adminAuth";
 
 export const dynamic = "force-dynamic";
 
+const CMS_URL = (process.env.NEXT_PUBLIC_CMS_URL || "http://localhost:8787").replace(/\/$/, "");
+const SECRET = process.env.CMS_ADMIN_SECRET || "";
+
+/**
+ * IP-based brute-force lockout, backed by the CMS worker's D1 (the only shared,
+ * durable store available). Fail-open on any error so a CMS outage can never
+ * lock the owner out; the password check still runs regardless.
+ */
+async function loginGate(
+  ip: string,
+  result?: "success" | "fail"
+): Promise<{ blocked: boolean; retryAfter?: number }> {
+  try {
+    const res = await fetch(`${CMS_URL}/api/admin/login-attempt`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(SECRET ? { "x-cms-secret": SECRET } : {}),
+      },
+      body: JSON.stringify({ ip, result }),
+    });
+    if (!res.ok) return { blocked: false };
+    const j = await res.json().catch(() => null);
+    return { blocked: !!j?.data?.blocked, retryAfter: j?.data?.retryAfter };
+  } catch {
+    return { blocked: false };
+  }
+}
+
+function clientIp(req: NextRequest): string {
+  return (
+    req.headers.get("cf-connecting-ip") ||
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    "unknown"
+  );
+}
+
 export async function POST(req: NextRequest) {
+  const ip = clientIp(req);
+
+  // Pre-check the lockout before doing any work (does not count as an attempt).
+  const pre = await loginGate(ip);
+  if (pre.blocked) {
+    return Response.json(
+      { ok: false, error: "Too many attempts. Please try again later." },
+      { status: 429, headers: pre.retryAfter ? { "Retry-After": String(pre.retryAfter) } : {} }
+    );
+  }
+
   const body = await req.json().catch(() => ({}));
   const password = String(body?.password ?? "");
   const expected = process.env.ADMIN_PASSWORD ?? "";
 
   // Fail-closed: no password configured means no one can sign in.
-  if (!expected || password.length === 0 || password !== expected) {
+  const ok = expected.length > 0 && password.length > 0 && password === expected;
+
+  // Record the outcome (success resets the counter; failure increments it).
+  const post = await loginGate(ip, ok ? "success" : "fail");
+
+  if (!ok) {
+    if (post.blocked) {
+      return Response.json(
+        { ok: false, error: "Too many attempts. Please try again later." },
+        { status: 429, headers: post.retryAfter ? { "Retry-After": String(post.retryAfter) } : {} }
+      );
+    }
     return Response.json({ ok: false, error: "Incorrect password." }, { status: 401 });
   }
 

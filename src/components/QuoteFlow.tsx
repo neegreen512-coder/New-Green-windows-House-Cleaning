@@ -7,6 +7,8 @@ import { motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Check } from "@phosphor-icons/react/dist/ssr";
 import { quoteOptions, business, type QuotePayload } from "@/lib/site";
 import { submitQuote } from "@/lib/cms";
+import { Turnstile, turnstileEnabled } from "@/components/Turnstile";
+import { HoneypotField } from "@/components/HoneypotField";
 
 const STEPS = ["Service", "Your home", "Frequency", "Your details", "Review"] as const;
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -61,6 +63,8 @@ export function QuoteFlow() {
   const [data, setData] = useState<QuotePayload>(empty);
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState("");
+  const [token, setToken] = useState("");
+  const [website, setWebsite] = useState(""); // honeypot
 
   const set = (patch: Partial<QuotePayload>) => setData((d) => ({ ...d, ...patch }));
 
@@ -81,7 +85,7 @@ export function QuoteFlow() {
     setStatus("sending");
     setError("");
     try {
-      await submitQuote(data);
+      await submitQuote(data, { website, turnstileToken: token });
       router.push("/quote-request-received");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
@@ -295,6 +299,9 @@ export function QuoteFlow() {
               <Summary label="Phone" value={data.phone} />
               <Summary label="Address" value={data.address} />
             </dl>
+
+            <HoneypotField value={website} onChange={setWebsite} />
+            <Turnstile onToken={setToken} />
           </div>
         )}
       </motion.div>
@@ -316,7 +323,7 @@ export function QuoteFlow() {
           <button
             type="button"
             onClick={submit}
-            disabled={status === "sending"}
+            disabled={status === "sending" || (turnstileEnabled && !token)}
             className="btn btn-primary disabled:opacity-60"
           >
             {status === "sending" ? "Sending..." : "Submit request"}

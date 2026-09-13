@@ -1,3 +1,9 @@
 # Copy this file to `.dev.vars` to test admin auth locally (optional).
 # If unset locally, the admin API is open so you can develop without a secret.
 ADMIN_SECRET=local-dev-secret
+
+# Cloudflare Turnstile secret key (server-side). Pairs with the site's
+# NEXT_PUBLIC_TURNSTILE_SITE_KEY. If unset, token verification is skipped
+# (the honeypot + per-IP rate limit still apply). In production set it with:
+#   wrangler secret put TURNSTILE_SECRET
+TURNSTILE_SECRET=

@@ -14,7 +14,7 @@ export default async function AdminPage() {
   const authed = await isAdminAuthed();
   return (
     <section className="relative">
-      <div className={`container-x pb-24 pt-32 lg:pt-36 ${authed ? "max-w-6xl" : "max-w-4xl"}`}>
+      <div className={`container-x pb-24 pt-10 lg:pt-14 ${authed ? "max-w-6xl" : "max-w-4xl"}`}>
         {authed ? <AdminDashboard /> : <AdminLogin />}
       </div>
     </section>

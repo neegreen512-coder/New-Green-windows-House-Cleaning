@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { Star } from "lucide-react";
 import { submitReview, uploadImage } from "@/lib/cms";
+import { Turnstile, turnstileEnabled } from "@/components/Turnstile";
+import { HoneypotField } from "@/components/HoneypotField";
 
 type State = "idle" | "sending" | "done" | "error";
 
@@ -13,6 +15,7 @@ export function ReviewForm({ onClose }: { onClose?: () => void }) {
   const [avatar, setAvatar] = useState("");
   const [photos, setPhotos] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [token, setToken] = useState("");
 
   async function handleFiles(files: FileList | null, mode: "avatar" | "photos") {
     if (!files || files.length === 0) return;
@@ -39,15 +42,18 @@ export function ReviewForm({ onClose }: { onClose?: () => void }) {
     setState("sending");
     setError("");
     try {
-      await submitReview({
-        name: String(form.get("name") || ""),
-        context: String(form.get("context") || ""),
-        service: String(form.get("service") || ""),
-        quote: String(form.get("quote") || ""),
-        rating,
-        avatar,
-        photos,
-      });
+      await submitReview(
+        {
+          name: String(form.get("name") || ""),
+          context: String(form.get("context") || ""),
+          service: String(form.get("service") || ""),
+          quote: String(form.get("quote") || ""),
+          rating,
+          avatar,
+          photos,
+        },
+        { website: String(form.get("website") || ""), turnstileToken: token }
+      );
       setState("done");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
@@ -205,12 +211,15 @@ export function ReviewForm({ onClose }: { onClose?: () => void }) {
       </div>
       {uploading && <p className="mt-2 text-sm text-muted">Uploading photo...</p>}
 
+      <HoneypotField />
+      <Turnstile onToken={setToken} />
+
       {state === "error" && <p className="mt-3 text-sm text-[var(--color-error)]">{error}</p>}
 
       <div className="mt-6 flex gap-3">
         <button
           type="submit"
-          disabled={state === "sending" || uploading}
+          disabled={state === "sending" || uploading || (turnstileEnabled && !token)}
           className="btn btn-primary disabled:opacity-60"
         >
           {state === "sending" ? "Sending..." : "Submit review"}

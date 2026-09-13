@@ -467,6 +467,21 @@
 }
 @keyframes skel { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
 
+/* Hero entrance -------------------------------------------------------------
+   Pure-CSS so the LCP heading paints on first frame instead of waiting for JS
+   hydration (the old framer-motion version rendered opacity:0 in SSR, leaving
+   the hero unreadable until hydration finished). Reduced motion is handled by
+   the global rule below, which collapses the duration and leaves the end state
+   (fully visible) in place. */
+@keyframes ng-hero-rise {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: none; }
+}
+.hero-rise   { animation: ng-hero-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.hero-rise-1 { animation-delay: 0.05s; }
+.hero-rise-2 { animation-delay: 0.16s; }
+.hero-rise-3 { animation-delay: 0.26s; }
+
 /* Motion -------------------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }

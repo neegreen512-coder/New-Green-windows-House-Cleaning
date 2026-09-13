@@ -2,9 +2,6 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import { Geist, Geist_Mono, Outfit } from "next/font/google";
 import "./globals.css";
-import { SiteHeader } from "@/components/SiteHeader";
-import { SiteFooter } from "@/components/SiteFooter";
-import { SiteBanner } from "@/components/SiteBanner";
 import { business, analytics } from "@/lib/site";
 
 const geistSans = Geist({
@@ -73,18 +70,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en-CA" className={`${geistSans.variable} ${geistMono.variable} ${displayFont.variable}`}>
       <body>
-        <SiteBanner />
-        <a
-          href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-brand-800 focus:px-4 focus:py-2 focus:text-white"
-        >
-          Skip to content
-        </a>
-        <SiteHeader />
-        <main id="main">
-          {children}
-        </main>
-        <SiteFooter />
+        {children}
         {analytics.ga4Id && (
           <>
             <Script

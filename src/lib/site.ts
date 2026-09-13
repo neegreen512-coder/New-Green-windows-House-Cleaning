@@ -52,8 +52,10 @@ export const images = {
     alt: "A New Green cleaner in a green apron wiping a large window streak-free in a bright living room",
   },
   // Full-bleed homepage hero: a modern luxury home at golden hour.
+  // Self-hosted, right-sized webp (1680px, ~340KB) so it loads fast on mobile
+  // instead of hotlinking a 2600px original from Unsplash on every visit.
   heroLuxury: {
-    src: photo("photo-1757356657991-c3fd6e2e812e", 2600, 78),
+    src: "/images/hero-home.webp",
     alt: "A modern luxury home with walls of glass glowing warm at golden hour",
   },
   // Windows before/after: a close, zoomed view of a home's exterior glass.

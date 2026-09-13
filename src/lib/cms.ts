@@ -26,6 +26,22 @@ export type ReviewInput = {
   photos?: string[];
 };
 
+/**
+ * Anti-spam fields sent with every public submission:
+ * - `website` is a honeypot (a hidden field real users never fill).
+ * - `turnstileToken` is the Cloudflare Turnstile token when configured.
+ * Both are verified server-side in the CMS worker.
+ */
+export type SubmitSecurity = { website?: string; turnstileToken?: string };
+
+function withSecurity<T extends object>(payload: T, security?: SubmitSecurity) {
+  return {
+    ...payload,
+    website: security?.website ?? "",
+    turnstileToken: security?.turnstileToken ?? "",
+  };
+}
+
 export async function getApprovedReviews(): Promise<CmsReview[]> {
   const res = await fetch(`${CMS_URL}/api/reviews`, { cache: "no-store" });
   const json = await res.json();
@@ -33,11 +49,11 @@ export async function getApprovedReviews(): Promise<CmsReview[]> {
   return json.data as CmsReview[];
 }
 
-export async function submitReview(input: ReviewInput): Promise<void> {
+export async function submitReview(input: ReviewInput, security?: SubmitSecurity): Promise<void> {
   const res = await fetch(`${CMS_URL}/api/reviews`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input),
+    body: JSON.stringify(withSecurity(input, security)),
   });
   const json = await res.json().catch(() => ({}));
   if (!res.ok || !json?.ok) throw new Error(json?.error || "Could not submit your review.");
@@ -62,21 +78,21 @@ export async function getPricing(): Promise<CmsPricing[]> {
   return json.data as CmsPricing[];
 }
 
-export async function submitQuote(payload: QuotePayload): Promise<void> {
+export async function submitQuote(payload: QuotePayload, security?: SubmitSecurity): Promise<void> {
   const res = await fetch(`${CMS_URL}/api/quotes`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(withSecurity(payload, security)),
   });
   const json = await res.json().catch(() => ({}));
   if (!res.ok || !json?.ok) throw new Error(json?.error || "Could not submit your request.");
 }
 
-export async function submitContact(payload: ContactPayload): Promise<void> {
+export async function submitContact(payload: ContactPayload, security?: SubmitSecurity): Promise<void> {
   const res = await fetch(`${CMS_URL}/api/messages`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(withSecurity(payload, security)),
   });
   const json = await res.json().catch(() => ({}));
   if (!res.ok || !json?.ok) throw new Error(json?.error || "Could not send your message.");

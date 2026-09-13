@@ -4,14 +4,29 @@ import { cors } from "hono/cors";
 type Bindings = {
   DB: D1Database;
   ADMIN_SECRET?: string;
+  TURNSTILE_SECRET?: string;
 };
 
 const app = new Hono<{ Bindings: Bindings }>();
 
+// Only the site's own origins may call the API from a browser. Server-side
+// (SSR) fetches send no Origin and are unaffected. This is hygiene, not the
+// spam defence (bots ignore CORS) — see the honeypot + rate limit + Turnstile
+// applied to the public POST endpoints below.
+const ALLOWED_ORIGINS = new Set([
+  "https://newgreenwindowsandhousecleaning.ca",
+  "https://www.newgreenwindowsandhousecleaning.ca",
+  "https://newgreen-site.neegreen512.workers.dev",
+  "http://localhost:3000",
+]);
+
 app.use(
   "*",
   cors({
-    origin: "*",
+    origin: (origin) =>
+      origin && ALLOWED_ORIGINS.has(origin)
+        ? origin
+        : "https://newgreenwindowsandhousecleaning.ca",
     allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowHeaders: ["Content-Type", "x-cms-secret"],
   })
@@ -23,6 +38,77 @@ const clamp = (v: unknown, min: number, max: number, fallback: number) => {
   return Number.isNaN(n) ? fallback : Math.max(min, Math.min(max, n));
 };
 const str = (v: unknown, max: number) => (v == null ? "" : String(v)).slice(0, max);
+
+/* ------------------------------------------------------------- Anti-spam ---
+   Honeypot + per-IP rate limiting + optional Cloudflare Turnstile. All three
+   apply to the public submission endpoints (quotes, messages, reviews). */
+
+function clientIp(req: Request): string {
+  return (
+    req.headers.get("cf-connecting-ip") ||
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    "unknown"
+  );
+}
+
+// A filled honeypot ("website") means a bot; real users never see the field.
+const isHoneypot = (b: Record<string, unknown> | null) =>
+  !!b && typeof b.website === "string" && b.website.trim().length > 0;
+
+// Fixed-window per-IP rate limit, backed by D1.
+async function rateLimit(
+  db: D1Database,
+  bucket: string,
+  limit: number,
+  windowMs: number
+): Promise<{ ok: boolean; retryAfter: number }> {
+  const t = Date.now();
+  const row = await db
+    .prepare("SELECT count, window_start FROM rate_limit WHERE bucket = ?")
+    .bind(bucket)
+    .first<{ count: number; window_start: number }>();
+  let count = row?.count ?? 0;
+  let windowStart = row?.window_start ?? 0;
+  if (!row || t - windowStart > windowMs) {
+    count = 0;
+    windowStart = t;
+  }
+  count += 1;
+  await db
+    .prepare(
+      "INSERT INTO rate_limit (bucket, count, window_start) VALUES (?, ?, ?) ON CONFLICT(bucket) DO UPDATE SET count = excluded.count, window_start = excluded.window_start"
+    )
+    .bind(bucket, count, windowStart)
+    .run();
+  if (count > limit) return { ok: false, retryAfter: Math.ceil((windowStart + windowMs - t) / 1000) };
+  return { ok: true, retryAfter: 0 };
+}
+
+// Verify a Turnstile token. If no secret is configured, verification is skipped
+// (returns true) so the site works before keys are provisioned.
+async function verifyTurnstile(
+  secret: string | undefined,
+  token: string,
+  ip: string
+): Promise<boolean> {
+  if (!secret) return true;
+  if (!token) return false;
+  try {
+    const form = new URLSearchParams();
+    form.set("secret", secret);
+    form.set("response", token);
+    if (ip && ip !== "unknown") form.set("remoteip", ip);
+    const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: form.toString(),
+    });
+    const j = (await res.json().catch(() => ({}))) as { success?: boolean };
+    return !!j.success;
+  } catch {
+    return false;
+  }
+}
 
 app.get("/api/health", (c) => c.json(ok({ status: "up" })));
 
@@ -103,6 +189,17 @@ app.post("/api/reviews", async (c) => {
   const body = await c.req.json().catch(() => null);
   if (!body) return c.json({ ok: false, error: "Invalid request." }, 400);
 
+  // Honeypot: pretend success so bots do not learn they were caught.
+  if (isHoneypot(body)) return c.json(ok({ submitted: true }));
+  const ip = clientIp(c.req.raw);
+  const rl = await rateLimit(c.env.DB, `reviews:${ip}`, 5, 60 * 60 * 1000);
+  if (!rl.ok)
+    return c.json({ ok: false, error: "Too many submissions. Please try again later." }, 429, {
+      "Retry-After": String(rl.retryAfter),
+    });
+  if (!(await verifyTurnstile(c.env.TURNSTILE_SECRET, str(body.turnstileToken, 4000), ip)))
+    return c.json({ ok: false, error: "Verification failed. Please try again." }, 400);
+
   const name = str(body.name, 80).trim();
   const quote = str(body.quote, 1200).trim();
   const service = str(body.service, 60).trim();
@@ -151,6 +248,16 @@ app.post("/api/quotes", async (c) => {
   const b = await c.req.json().catch(() => null);
   if (!b) return c.json({ ok: false, error: "Invalid request." }, 400);
 
+  if (isHoneypot(b)) return c.json(ok({ submitted: true }));
+  const ip = clientIp(c.req.raw);
+  const rl = await rateLimit(c.env.DB, `quotes:${ip}`, 8, 60 * 60 * 1000);
+  if (!rl.ok)
+    return c.json({ ok: false, error: "Too many requests. Please try again later." }, 429, {
+      "Retry-After": String(rl.retryAfter),
+    });
+  if (!(await verifyTurnstile(c.env.TURNSTILE_SECRET, str(b.turnstileToken, 4000), ip)))
+    return c.json({ ok: false, error: "Verification failed. Please try again." }, 400);
+
   const name = str(b.name, 80).trim();
   const email = str(b.email, 120).trim();
   if (name.length < 2) return c.json({ ok: false, error: "Please add your name." }, 400);
@@ -183,6 +290,16 @@ app.post("/api/messages", async (c) => {
   const b = await c.req.json().catch(() => null);
   if (!b) return c.json({ ok: false, error: "Invalid request." }, 400);
 
+  if (isHoneypot(b)) return c.json(ok({ submitted: true }));
+  const ip = clientIp(c.req.raw);
+  const rl = await rateLimit(c.env.DB, `messages:${ip}`, 8, 60 * 60 * 1000);
+  if (!rl.ok)
+    return c.json({ ok: false, error: "Too many messages. Please try again later." }, 429, {
+      "Retry-After": String(rl.retryAfter),
+    });
+  if (!(await verifyTurnstile(c.env.TURNSTILE_SECRET, str(b.turnstileToken, 4000), ip)))
+    return c.json({ ok: false, error: "Verification failed. Please try again." }, 400);
+
   const name = str(b.name, 80).trim();
   const email = str(b.email, 120).trim();
   const message = str(b.message, 4000).trim();
@@ -209,6 +326,58 @@ admin.use("*", async (c, next) => {
     return c.json({ ok: false, error: "Unauthorized" }, 401);
   }
   await next();
+});
+
+/* Login brute-force lockout. Called by the site's /api/admin-login (which holds
+   the secret). Body: { ip, result?: "success" | "fail" }. With no result it is
+   a pure pre-check. 8 failures within 15 minutes locks that IP for 15 minutes. */
+admin.post("/login-attempt", async (c) => {
+  const b = await c.req.json().catch(() => ({}));
+  const ip = str(b.ip, 64) || "unknown";
+  const result = b.result === "success" ? "success" : b.result === "fail" ? "fail" : undefined;
+  const bucket = `login:${ip}`;
+  const t = Date.now();
+  const WINDOW = 15 * 60 * 1000;
+  const MAX_FAILS = 8;
+  const LOCK = 15 * 60 * 1000;
+
+  const row = await c.env.DB.prepare(
+    "SELECT count, window_start, locked_until FROM rate_limit WHERE bucket = ?"
+  )
+    .bind(bucket)
+    .first<{ count: number; window_start: number; locked_until: number }>();
+
+  const lockedUntil = row?.locked_until ?? 0;
+  if (lockedUntil > t) {
+    return c.json(ok({ blocked: true, retryAfter: Math.ceil((lockedUntil - t) / 1000) }));
+  }
+
+  if (result === "success") {
+    await c.env.DB.prepare("DELETE FROM rate_limit WHERE bucket = ?").bind(bucket).run();
+    return c.json(ok({ blocked: false }));
+  }
+
+  if (result === "fail") {
+    let count = row?.count ?? 0;
+    let windowStart = row?.window_start ?? 0;
+    if (!row || t - windowStart > WINDOW) {
+      count = 0;
+      windowStart = t;
+    }
+    count += 1;
+    const blocked = count >= MAX_FAILS;
+    const newLock = blocked ? t + LOCK : 0;
+    await c.env.DB.prepare(
+      "INSERT INTO rate_limit (bucket, count, window_start, locked_until) VALUES (?, ?, ?, ?) ON CONFLICT(bucket) DO UPDATE SET count = excluded.count, window_start = excluded.window_start, locked_until = excluded.locked_until"
+    )
+      .bind(bucket, count, windowStart, newLock)
+      .run();
+    return c.json(
+      ok({ blocked, retryAfter: blocked ? Math.ceil(LOCK / 1000) : 0, remaining: Math.max(0, MAX_FAILS - count) })
+    );
+  }
+
+  return c.json(ok({ blocked: false }));
 });
 
 // Reviews

@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { submitContact } from "@/lib/cms";
+import { Turnstile, turnstileEnabled } from "@/components/Turnstile";
+import { HoneypotField } from "@/components/HoneypotField";
 
 type State = "idle" | "sending" | "done" | "error";
 
@@ -11,6 +13,7 @@ const fieldClass =
 export function ContactForm() {
   const [state, setState] = useState<State>("idle");
   const [error, setError] = useState("");
+  const [token, setToken] = useState("");
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -18,12 +21,15 @@ export function ContactForm() {
     setState("sending");
     setError("");
     try {
-      await submitContact({
-        name: String(form.get("name") || ""),
-        email: String(form.get("email") || ""),
-        phone: String(form.get("phone") || ""),
-        message: String(form.get("message") || ""),
-      });
+      await submitContact(
+        {
+          name: String(form.get("name") || ""),
+          email: String(form.get("email") || ""),
+          phone: String(form.get("phone") || ""),
+          message: String(form.get("message") || ""),
+        },
+        { website: String(form.get("website") || ""), turnstileToken: token }
+      );
       setState("done");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
@@ -82,9 +88,16 @@ export function ContactForm() {
         />
       </label>
 
+      <HoneypotField />
+      <Turnstile onToken={setToken} />
+
       {state === "error" && <p className="mt-3 text-sm text-[var(--color-error)]">{error}</p>}
 
-      <button type="submit" disabled={state === "sending"} className="btn btn-primary mt-6 disabled:opacity-60">
+      <button
+        type="submit"
+        disabled={state === "sending" || (turnstileEnabled && !token)}
+        className="btn btn-primary mt-6 disabled:opacity-60"
+      >
         {state === "sending" ? "Sending..." : "Send message"}
       </button>
     </form>

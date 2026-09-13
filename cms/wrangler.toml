@@ -14,3 +14,7 @@ migrations_dir = "migrations"
 # ADMIN_SECRET is set as a Worker secret in production:
 #   wrangler secret put ADMIN_SECRET
 # Locally it is read from a .dev.vars file (see .dev.vars.example).
+#
+# TURNSTILE_SECRET (optional) enables server-side CAPTCHA verification:
+#   wrangler secret put TURNSTILE_SECRET
+# If unset, the honeypot + per-IP rate limit still protect the public forms.
