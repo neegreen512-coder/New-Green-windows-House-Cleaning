@@ -7,17 +7,44 @@ import { Process } from "@/components/sections/Process";
 import { Pricing } from "@/components/sections/Pricing";
 import { Testimonials } from "@/components/sections/Testimonials";
 import { FinalCta } from "@/components/sections/FinalCta";
-import { business, services, testimonials } from "@/lib/site";
+import { business, services, testimonials, areaNames } from "@/lib/site";
 
 export default function HomePage() {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "HomeAndConstructionBusiness",
+    "@id": `https://${business.domain}/#business`,
     name: business.name,
     description:
-      "Professional window and house cleaning for homes across Canada, including detailed deep cleaning.",
+      "Professional window and house cleaning for homes across Mississauga and the GTA, including detailed deep cleaning.",
     url: `https://${business.domain}`,
-    areaServed: { "@type": "Country", name: "Canada" },
+    telephone: business.phone,
+    email: business.email,
+    image: `https://${business.domain}/brand/newgreen-ad-landscape.jpg`,
+    logo: `https://${business.domain}/brand/newgreen-logo-square.png`,
+    priceRange: "$$",
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: business.streetAddress,
+      addressLocality: business.addressLocality,
+      addressRegion: business.addressRegion,
+      postalCode: business.postalCode,
+      addressCountry: business.addressCountry,
+    },
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: business.geo.latitude,
+      longitude: business.geo.longitude,
+    },
+    areaServed: areaNames.map((name) => ({ "@type": "City", name })),
+    openingHoursSpecification: [
+      {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+        opens: "08:00",
+        closes: "18:00",
+      },
+    ],
     makesOffer: services.map((s) => ({
       "@type": "Offer",
       itemOffered: { "@type": "Service", name: s.title },

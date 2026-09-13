@@ -16,9 +16,19 @@ export const business = {
   // Replace every [PLACEHOLDER] and its matching tel:/mailto: link before launch.
   phone: "+1 437 575 7046",
   phoneHref: "tel:+14375757046",
-  email: "support@newgreenwindowsandhousecleaning.ca",
-  emailHref: "mailto:support@newgreenwindowsandhousecleaning.ca",
+  email: "support@new-green.ca",
+  emailHref: "mailto:support@new-green.ca",
   address: "3329 McMaster Rd, Mississauga, ON L5L 5G6, Canada",
+  // Structured address + geo for LocalBusiness schema (mirror `address` above).
+  // CONFIRM the postal code with the client (an earlier note had L5L 5H8).
+  streetAddress: "3329 McMaster Rd",
+  addressLocality: "Mississauga",
+  addressRegion: "ON",
+  postalCode: "L5L 5G6",
+  addressCountry: "CA",
+  // Approximate coordinates for the L5L area of Mississauga (the Google Business
+  // Profile is the authoritative map pin; refine if the client wants an exact one).
+  geo: { latitude: 43.532, longitude: -79.701 },
   hours: "Monday to Saturday, 8:00 AM to 6:00 PM",
   primaryCity: "Mississauga",
   region: "Canada",
@@ -37,14 +47,8 @@ export const analytics = {
 } as const;
 
 /* ------------------------------------------------------------------ Images
-   Curated placeholder photography (Unsplash). Every reference is centralised
-   here so real business photography can be swapped in without touching UI.
-   Unsplash license: free to use, attribution appreciated (see PHOTO_CREDITS). */
-
-const U = "https://images.unsplash.com/";
-export function photo(id: string, w = 1600, q = 72) {
-  return `${U}${id}?auto=format&fit=crop&w=${w}&q=${q}`;
-}
+   All imagery is self-hosted from /public/images (webp) — no runtime hotlinks.
+   Swap the files or paths for real New Green photography without touching UI. */
 
 export const images = {
   heroClean: {
@@ -60,16 +64,16 @@ export const images = {
   },
   // Windows before/after: a close, zoomed view of a home's exterior glass.
   windowsView: {
-    src: photo("photo-1787095481258-71e68568e6a2", 1800, 74),
+    src: "/images/windows-view.webp",
     alt: "The exterior glass of a home's window, sunlit and streak-free after a clean",
   },
   // About page: a genuine, in-home moment of careful window cleaning.
   aboutHuman: {
-    src: photo("photo-1581578731565-fcdb660a4639", 1600, 74),
+    src: "/images/about-human.webp",
     alt: "A person carefully cleaning the glass of a sunlit home window by hand",
   },
   aboutCraft: {
-    src: photo("photo-1721620780493-e905708eba0b", 1600, 74),
+    src: "/images/about-craft.webp",
     alt: "A professional window cleaner detailing the exterior glass of a home",
   },
   interior: {
@@ -93,11 +97,11 @@ export const images = {
     alt: "A cleaner detailing bathroom and kitchen surfaces during a home visit",
   },
   beforeMessy: {
-    src: photo("photo-1641232458416-feace752b346", 1600, 72),
+    src: "/images/before-messy.webp",
     alt: "A cluttered, lived-in living room before a clean",
   },
   afterClean: {
-    src: photo("photo-1484101403633-562f891dc89a", 1600, 72),
+    src: "/images/after-clean.webp",
     alt: "A bright, spotless, freshly cleaned living room after a clean",
   },
   cleaningAction: {
@@ -386,7 +390,7 @@ export const serviceAreas = {
       blurb:
         "Our home base. From Port Credit to Square One, Mississauga is where we started and where most of our regulars are.",
       image: {
-        src: photo("photo-1726286733742-cd6149ff1184", 1200, 72),
+        src: "/images/area-mississauga.webp",
         alt: "The curving Absolute World towers, an icon of the Mississauga skyline",
       },
     },
@@ -396,7 +400,7 @@ export const serviceAreas = {
       blurb:
         "Lakeside homes and heritage streets near the harbour, where clean glass and a bright view really earn their keep.",
       image: {
-        src: photo("photo-1587577207520-177ccd2cb8ea", 1200, 72),
+        src: "/images/area-oakville.webp",
         alt: "The red and white lighthouse at Oakville harbour on Lake Ontario",
       },
     },
@@ -406,7 +410,7 @@ export const serviceAreas = {
       blurb:
         "Growing family neighbourhoods and leafy trails. A city of busy households that value a home kept effortlessly clean.",
       image: {
-        src: photo("photo-1580855354769-3009c336ae65", 1200, 72),
+        src: "/images/area-brampton.webp",
         alt: "A wooden footbridge among autumn trees on a Brampton parkland trail",
       },
     },
@@ -416,7 +420,7 @@ export const serviceAreas = {
       blurb:
         "Condo towers and lakeshore houses along Humber Bay, where floor-to-ceiling glass deserves a streak-free finish.",
       image: {
-        src: photo("photo-1693652794759-4a383500f1aa", 1200, 72),
+        src: "/images/area-etobicoke.webp",
         alt: "The Humber Bay waterfront with the city skyline across the water",
       },
     },
@@ -426,7 +430,7 @@ export const serviceAreas = {
       blurb:
         "New builds tucked under the escarpment. Big windows, big views, and plenty of dust from all that fresh construction.",
       image: {
-        src: photo("photo-1698156223257-43b1c4b868ce", 1200, 72),
+        src: "/images/area-milton.webp",
         alt: "Autumn colour along the Niagara Escarpment near Milton",
       },
     },
@@ -436,7 +440,7 @@ export const serviceAreas = {
       blurb:
         "From the Brant Street pier to the quiet streets inland, a lakeside city that takes pride in a well-kept home.",
       image: {
-        src: photo("photo-1582167482830-1b0b9abd7f76", 1200, 72),
+        src: "/images/area-burlington.webp",
         alt: "A wooden pier reaching into Lake Ontario at golden hour near Burlington",
       },
     },

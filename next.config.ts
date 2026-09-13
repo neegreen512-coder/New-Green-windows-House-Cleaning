@@ -43,7 +43,7 @@ const csp = [
   `object-src 'none'`,
   `frame-ancestors 'none'`,
   `form-action 'self'`,
-  `img-src 'self' data: blob: https://images.unsplash.com ${GTM} ${ANALYTICS_IMG} ${cmsOrigin}`,
+  `img-src 'self' data: blob: ${GTM} ${ANALYTICS_IMG} ${cmsOrigin}`,
   // 'unsafe-eval' + ws: are dev-only (React Refresh / HMR); never shipped to prod.
   `script-src 'self' 'unsafe-inline' ${isDev ? "'unsafe-eval'" : ""} ${GTM} ${CF_INSIGHTS} ${TURNSTILE}`,
   `style-src 'self' 'unsafe-inline'`,
@@ -74,12 +74,9 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   images: {
     // Served on Cloudflare Workers via OpenNext. We skip the image optimizer
-    // (no Cloudflare Images binding / cost) and serve originals; the photos in
-    // public/images are already reasonably sized.
+    // (no Cloudflare Images binding / cost) and serve originals; every image is
+    // self-hosted from /public/images (webp), so no remote patterns are needed.
     unoptimized: true,
-    remotePatterns: [
-      { protocol: "https", hostname: "images.unsplash.com" },
-    ],
   },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];

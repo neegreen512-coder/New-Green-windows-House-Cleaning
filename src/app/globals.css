@@ -206,6 +206,7 @@
     will-change: transform;
   }
   .btn:active { transform: translateY(1px); }
+  .btn-sm { padding: 0.58rem 1.05rem; font-size: 0.875rem; }
 
   .btn-primary {
     background-color: var(--color-brand-800);

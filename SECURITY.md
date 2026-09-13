@@ -58,6 +58,24 @@ To rotate: create a new widget in Cloudflare -> Turnstile, update
 `NEXT_PUBLIC_TURNSTILE_SITE_KEY` in `.env.production`, and
 `gh secret set TURNSTILE_SECRET` (then redeploy the CMS).
 
+## Client dashboard actions (cannot be done in code)
+
+**`www` does not resolve.** The apex works; `www.newgreenwindowsandhousecleaning.ca`
+returns NXDOMAIN. Fix in Cloudflare (DNS/Workers for the domain's zone):
+- Easiest: **Rules -> Redirect Rules -> add** "Redirect from www to apex" (301,
+  `https://www.$1` -> `https://newgreenwindowsandhousecleaning.ca/$1`), plus a
+  proxied `www` DNS record (CNAME `www` -> `@`, orange cloud) so the hostname
+  resolves. Or add `www` as a Custom Domain on the `newgreen-site` Worker.
+
+**robots.txt blocks AI crawlers.** Cloudflare serves a *managed* robots.txt that
+blocks GPTBot, ClaudeBot, Google-Extended, etc., and it shadows the app's own
+`robots.txt`. To let the site appear in AI answers, turn off the managed
+robots.txt / "Block AI bots" setting for the domain in the Cloudflare dashboard
+(Manage Account/domain -> the robots.txt or AI-bot control). The app then serves
+`src/app/robots.ts`, which allows all crawlers except `/admin` and `/api/`.
+(Tradeoff: allowing AI crawlers also allows AI training on the public marketing
+content, which is generally fine for a marketing site.)
+
 ## Cloudflare Access — intentionally skipped
 
 Zero Trust / Access was skipped on purpose (its onboarding requires a payment

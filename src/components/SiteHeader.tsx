@@ -7,6 +7,17 @@ import { List, Phone, X } from "@phosphor-icons/react/dist/ssr";
 import { LogoMark } from "./Brand";
 import { business, nav } from "@/lib/site";
 
+// Trimmed primary nav for the desktop header. The full list (Blog, Service
+// Areas, FAQ, etc.) still lives in the footer and the mobile menu, so nothing
+// is lost; the header stays focused and leaves room for the quote CTA.
+const HEADER_NAV = [
+  { label: "Services", href: "/#services" },
+  { label: "Pricing", href: "/pricing" },
+  { label: "Gallery", href: "/gallery" },
+  { label: "About", href: "/about" },
+  { label: "Contact", href: "/contact" },
+];
+
 function NavLink({ href, label }: { href: string; label: string }) {
   const pathname = usePathname();
   const active = pathname === href;
@@ -76,14 +87,27 @@ export function SiteHeader() {
           <div className="flex h-16 items-center justify-between gap-4">
             <HeaderLockup />
 
-            <div className="flex items-center">
-              {/* Desktop nav, pushed to the right */}
+            <div className="flex items-center gap-1.5">
+              {/* Desktop nav */}
               <nav className="hidden items-center lg:flex" aria-label="Primary">
-                <NavLink href="/" label="Home" />
-                {nav.main.map((item) => (
+                {HEADER_NAV.map((item) => (
                   <NavLink key={item.href} href={item.href} label={item.label} />
                 ))}
               </nav>
+
+              {/* Desktop actions: click-to-call + the primary CTA */}
+              <div className="hidden items-center gap-2.5 lg:flex lg:pl-2.5">
+                <a
+                  href={business.phoneHref}
+                  className="hidden items-center gap-1.5 whitespace-nowrap font-[family-name:var(--font-geist-mono)] text-[0.74rem] font-semibold tracking-tight text-ink/75 transition-colors hover:text-brand-800 xl:inline-flex"
+                >
+                  <Phone className="h-3.5 w-3.5 text-brand-700" weight="fill" />
+                  {business.phone}
+                </a>
+                <Link href="/quote" className="btn btn-primary btn-sm">
+                  Get a free quote
+                </Link>
+              </div>
 
               <button
                 type="button"

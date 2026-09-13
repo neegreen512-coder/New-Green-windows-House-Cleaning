@@ -38,22 +38,33 @@ export async function SiteFooter() {
               Professional window and house cleaning for homes across {business.region}. A cleaner
               home, a brighter view, and a service you can rely on.
             </p>
-            <div className="mt-6 flex items-center gap-3">
-              {[
+            {(() => {
+              // Only render links that are actually set (skip "#" placeholders),
+              // so the footer never shows dead icons. Add real URLs in
+              // `business.social` in src/lib/site.ts.
+              const socials = [
                 { glyph: <InstagramGlyph className="h-[1.15rem] w-[1.15rem]" />, href: business.social.instagram, label: "Instagram" },
                 { glyph: <FacebookGlyph className="h-[1.15rem] w-[1.15rem]" />, href: business.social.facebook, label: "Facebook" },
-                { glyph: <Star className="h-[1.15rem] w-[1.15rem]" strokeWidth={1.7} />, href: business.social.google, label: "Reviews" },
-              ].map(({ glyph, href, label }) => (
-                <a
-                  key={label}
-                  href={href}
-                  aria-label={label}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 text-brand-100/85 transition-colors hover:border-white/40 hover:text-white"
-                >
-                  {glyph}
-                </a>
-              ))}
-            </div>
+                { glyph: <Star className="h-[1.15rem] w-[1.15rem]" strokeWidth={1.7} />, href: business.social.google, label: "Reviews on Google" },
+              ].filter((s) => s.href && s.href !== "#");
+              if (socials.length === 0) return null;
+              return (
+                <div className="mt-6 flex items-center gap-3">
+                  {socials.map(({ glyph, href, label }) => (
+                    <a
+                      key={label}
+                      href={href}
+                      aria-label={label}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 text-brand-100/85 transition-colors hover:border-white/40 hover:text-white"
+                    >
+                      {glyph}
+                    </a>
+                  ))}
+                </div>
+              );
+            })()}
           </div>
 
           {/* Services */}
