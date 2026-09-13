@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { cookies } from "next/headers";
-import { makeSessionToken, ADMIN_COOKIE, ADMIN_MAX_AGE } from "@/lib/adminAuth";
+import { makeSessionToken, ADMIN_COOKIE, ADMIN_MAX_AGE, adminConfigured } from "@/lib/adminAuth";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +33,27 @@ async function loginGate(
   }
 }
 
+// Ask the CMS (which holds the Turnstile secret) to verify the login token.
+// Fail-open on transport errors so a CMS outage never blocks the owner; the
+// password is still required. Returns false only on an explicit failed verdict.
+async function verifyLoginTurnstile(token: string, ip: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${CMS_URL}/api/admin/turnstile-verify`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(SECRET ? { "x-cms-secret": SECRET } : {}),
+      },
+      body: JSON.stringify({ token, ip }),
+    });
+    if (!res.ok) return true;
+    const j = await res.json().catch(() => null);
+    return j?.data?.success !== false;
+  } catch {
+    return true;
+  }
+}
+
 function clientIp(req: NextRequest): string {
   return (
     req.headers.get("cf-connecting-ip") ||
@@ -42,6 +63,12 @@ function clientIp(req: NextRequest): string {
 }
 
 export async function POST(req: NextRequest) {
+  // Fail-closed: without the session-signing secret (and password) no one can
+  // sign in, and we must not issue a cookie we cannot securely sign.
+  if (!adminConfigured() || !process.env.ADMIN_PASSWORD) {
+    return Response.json({ ok: false, error: "Admin is not configured." }, { status: 503 });
+  }
+
   const ip = clientIp(req);
 
   // Pre-check the lockout before doing any work (does not count as an attempt).
@@ -56,6 +83,21 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
   const password = String(body?.password ?? "");
   const expected = process.env.ADMIN_PASSWORD ?? "";
+
+  // When Turnstile is configured, require and verify a token before the
+  // password check, so automated brute-force cannot even attempt a guess.
+  // A failed/missing challenge does NOT count toward the IP lockout: Turnstile
+  // already stops the bot, and counting it would let tokenless requests lock out
+  // anyone sharing the owner's egress IP.
+  if (process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY) {
+    const token = String(body?.turnstileToken ?? "");
+    if (!token || !(await verifyLoginTurnstile(token, ip))) {
+      return Response.json(
+        { ok: false, error: "Verification failed. Please try again." },
+        { status: 400 }
+      );
+    }
+  }
 
   // Fail-closed: no password configured means no one can sign in.
   const ok = expected.length > 0 && password.length > 0 && password === expected;

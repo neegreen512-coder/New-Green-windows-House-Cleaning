@@ -14,6 +14,7 @@ export function ContactForm() {
   const [state, setState] = useState<State>("idle");
   const [error, setError] = useState("");
   const [token, setToken] = useState("");
+  const [resetTs, setResetTs] = useState(0);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -34,6 +35,9 @@ export function ContactForm() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
       setState("error");
+      // Turnstile tokens are single-use; refresh for the next attempt.
+      setToken("");
+      setResetTs((n) => n + 1);
     }
   }
 
@@ -89,7 +93,7 @@ export function ContactForm() {
       </label>
 
       <HoneypotField />
-      <Turnstile onToken={setToken} />
+      <Turnstile onToken={setToken} resetSignal={resetTs} />
 
       {state === "error" && <p className="mt-3 text-sm text-[var(--color-error)]">{error}</p>}
 

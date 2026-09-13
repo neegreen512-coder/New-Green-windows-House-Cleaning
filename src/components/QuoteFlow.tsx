@@ -64,6 +64,7 @@ export function QuoteFlow() {
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState("");
   const [token, setToken] = useState("");
+  const [resetTs, setResetTs] = useState(0);
   const [website, setWebsite] = useState(""); // honeypot
 
   const set = (patch: Partial<QuotePayload>) => setData((d) => ({ ...d, ...patch }));
@@ -90,6 +91,9 @@ export function QuoteFlow() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
       setStatus("error");
+      // Turnstile tokens are single-use; refresh for the next attempt.
+      setToken("");
+      setResetTs((n) => n + 1);
     }
   }
 
@@ -301,7 +305,7 @@ export function QuoteFlow() {
             </dl>
 
             <HoneypotField value={website} onChange={setWebsite} />
-            <Turnstile onToken={setToken} />
+            <Turnstile onToken={setToken} resetSignal={resetTs} />
           </div>
         )}
       </motion.div>

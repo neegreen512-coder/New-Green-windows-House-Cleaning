@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Turnstile, turnstileEnabled } from "@/components/Turnstile";
 
 type State = "idle" | "sending" | "error";
 
@@ -9,6 +10,16 @@ export function AdminLogin() {
   const router = useRouter();
   const [state, setState] = useState<State>("idle");
   const [error, setError] = useState("");
+  const [token, setToken] = useState("");
+  const [resetTs, setResetTs] = useState(0);
+
+  // A used token cannot be replayed; get a fresh one for the next attempt.
+  function failed(message: string) {
+    setError(message);
+    setState("error");
+    setToken("");
+    setResetTs((n) => n + 1);
+  }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -19,18 +30,19 @@ export function AdminLogin() {
       const res = await fetch("/api/admin-login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: String(form.get("password") || "") }),
+        body: JSON.stringify({
+          password: String(form.get("password") || ""),
+          turnstileToken: token,
+        }),
       });
       if (res.ok) {
         router.refresh();
         return;
       }
       const j = await res.json().catch(() => ({}));
-      setError(j?.error || "Incorrect password.");
-      setState("error");
+      failed(j?.error || "Incorrect password.");
     } catch {
-      setError("Something went wrong. Please try again.");
-      setState("error");
+      failed("Something went wrong. Please try again.");
     }
   }
 
@@ -51,10 +63,11 @@ export function AdminLogin() {
             className="w-full rounded-lg border border-line-strong bg-bg px-3.5 py-2.5 text-ink outline-none transition-colors focus:border-brand-600"
           />
         </label>
+        <Turnstile onToken={setToken} resetSignal={resetTs} />
         {state === "error" && <p className="mt-3 text-sm text-[var(--color-error)]">{error}</p>}
         <button
           type="submit"
-          disabled={state === "sending"}
+          disabled={state === "sending" || (turnstileEnabled && !token)}
           className="btn btn-primary mt-5 w-full disabled:opacity-60"
         >
           {state === "sending" ? "Signing in..." : "Sign in"}

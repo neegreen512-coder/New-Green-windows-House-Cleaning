@@ -16,6 +16,7 @@ export function ReviewForm({ onClose }: { onClose?: () => void }) {
   const [photos, setPhotos] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [token, setToken] = useState("");
+  const [resetTs, setResetTs] = useState(0);
 
   async function handleFiles(files: FileList | null, mode: "avatar" | "photos") {
     if (!files || files.length === 0) return;
@@ -58,6 +59,9 @@ export function ReviewForm({ onClose }: { onClose?: () => void }) {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
       setState("error");
+      // Turnstile tokens are single-use; refresh for the next attempt.
+      setToken("");
+      setResetTs((n) => n + 1);
     }
   }
 
@@ -212,7 +216,7 @@ export function ReviewForm({ onClose }: { onClose?: () => void }) {
       {uploading && <p className="mt-2 text-sm text-muted">Uploading photo...</p>}
 
       <HoneypotField />
-      <Turnstile onToken={setToken} />
+      <Turnstile onToken={setToken} resetSignal={resetTs} />
 
       {state === "error" && <p className="mt-3 text-sm text-[var(--color-error)]">{error}</p>}
 

@@ -45,7 +45,18 @@ function loadScript(): Promise<void> {
   return scriptPromise;
 }
 
-export function Turnstile({ onToken }: { onToken: (token: string) => void }) {
+/**
+ * `resetSignal`: increment it from the parent after a failed submit. Turnstile
+ * tokens are single-use, so a retry must fetch a fresh one; without this the
+ * reused token fails verification on every retry.
+ */
+export function Turnstile({
+  onToken,
+  resetSignal = 0,
+}: {
+  onToken: (token: string) => void;
+  resetSignal?: number;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const widgetId = useRef<string | null>(null);
   const cb = useRef(onToken);
@@ -78,6 +89,19 @@ export function Turnstile({ onToken }: { onToken: (token: string) => void }) {
       }
     };
   }, []);
+
+  // Fetch a fresh token when the parent bumps resetSignal (after a failed submit).
+  useEffect(() => {
+    if (!SITE_KEY || resetSignal === 0) return;
+    cb.current("");
+    if (widgetId.current && window.turnstile) {
+      try {
+        window.turnstile.reset(widgetId.current);
+      } catch {
+        /* widget not ready */
+      }
+    }
+  }, [resetSignal]);
 
   if (!SITE_KEY) return null;
   return <div ref={ref} className="mt-4 min-h-[65px]" />;

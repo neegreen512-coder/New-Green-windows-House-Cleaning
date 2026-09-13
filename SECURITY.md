@@ -21,31 +21,49 @@ worker, and Cloudflare Turnstile.
 **CORS** — the CMS API now only accepts browser calls from the site's own
 origins (was `*`). Server-side calls are unaffected.
 
-**Admin login lockout** — `/api/admin-login` checks a D1-backed counter in the
-CMS: 8 failed attempts from one IP within 15 minutes locks that IP for 15
-minutes (HTTP 429). Fail-open: if the CMS is unreachable the password check
-still runs, so the owner can never be locked out by an outage.
+**Admin protection (no Cloudflare Access / Zero Trust).** The admin is gated in
+the app, not at the edge, so it needs no Zero Trust onboarding (which asks for a
+billing address even on the free plan). Three layers:
+1. **Password** (`ADMIN_PASSWORD`) -> HMAC-signed httpOnly session cookie.
+2. **Turnstile on the login form** — an automated bot cannot even attempt a
+   password guess without passing the challenge.
+3. **IP lockout** — 8 failed attempts from one IP within 15 minutes locks that IP
+   for 15 minutes (HTTP 429), tracked in the CMS D1. A missing/invalid Turnstile
+   token also counts as a failed attempt. Fail-open on a CMS outage, so the owner
+   is never locked out by an outage (the password is still required).
+
+The CMS admin API is separately gated by a shared secret, and the site's
+`/api/admin/*` proxy requires the login cookie.
+
+**Required:** `CMS_ADMIN_SECRET` must be set on the site Worker (it is). It signs
+the session cookie, and the admin now **fails closed** if it is missing (no
+sign-in, rather than falling back to a shared key). The per-IP counters use a
+single atomic SQL statement (no read-modify-write race), and the public image
+upload endpoint is rate-limited and restricted to raster types (no SVG).
 
 **Admin chrome** — `/admin` now renders as a bare tool (its own route group),
 with none of the public marketing header/footer.
 
-## Two steps that need the client's Cloudflare account
+## Turnstile keys (configured)
 
-### 1. Cloudflare Turnstile (free CAPTCHA)
-1. Cloudflare dashboard -> Turnstile -> Add widget (hostname:
-   `newgreenwindowsandhousecleaning.ca`). Copy the **site key** and **secret key**.
-2. Site: set `NEXT_PUBLIC_TURNSTILE_SITE_KEY = <site key>` (a Worker var on
-   `newgreen-site`, or in `.env.production`, then redeploy).
-3. CMS worker: `cd cms && wrangler secret put TURNSTILE_SECRET` -> paste the
-   **secret key**.
+Turnstile is live. The keys are stored as:
+- **Site key** (public): `NEXT_PUBLIC_TURNSTILE_SITE_KEY` in `.env.production`,
+  baked into the site build. Powers the widget on the quote, contact, review,
+  and admin-login forms.
+- **Secret key**: a GitHub Actions repo secret `TURNSTILE_SECRET`, which the
+  Deploy CMS workflow pushes to the Worker (`wrangler secret put`) on each
+  deploy. Never committed to the repo.
 
-Until these are set, the honeypot + rate limit are the active protection and the
-widget simply does not render.
+To rotate: create a new widget in Cloudflare -> Turnstile, update
+`NEXT_PUBLIC_TURNSTILE_SITE_KEY` in `.env.production`, and
+`gh secret set TURNSTILE_SECRET` (then redeploy the CMS).
 
-### 2. Cloudflare Access on the admin (defense in depth)
-Zero Trust -> Access -> Applications -> protect **both** `/admin` and
-`/api/admin/*` on the site, allowing the owner's email. This puts a login in
-front of the app before the password screen is even reachable.
+## Cloudflare Access — intentionally skipped
+
+Zero Trust / Access was skipped on purpose (its onboarding requires a payment
+method + billing address). The three-layer app-level admin protection above is
+used instead. If the client later wants edge Access, it can be added without any
+code change.
 
 ## Post-deploy checks
 - `curl -sSI https://newgreenwindowsandhousecleaning.ca | grep -i content-security`

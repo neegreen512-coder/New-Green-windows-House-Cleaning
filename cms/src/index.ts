@@ -55,7 +55,9 @@ function clientIp(req: Request): string {
 const isHoneypot = (b: Record<string, unknown> | null) =>
   !!b && typeof b.website === "string" && b.website.trim().length > 0;
 
-// Fixed-window per-IP rate limit, backed by D1.
+// Fixed-window per-IP rate limit, backed by D1. The increment is a single
+// atomic UPSERT (SQLite serializes the write) so concurrent requests cannot
+// race the read-modify-write and evade the limit.
 async function rateLimit(
   db: D1Database,
   bucket: string,
@@ -64,22 +66,18 @@ async function rateLimit(
 ): Promise<{ ok: boolean; retryAfter: number }> {
   const t = Date.now();
   const row = await db
-    .prepare("SELECT count, window_start FROM rate_limit WHERE bucket = ?")
-    .bind(bucket)
-    .first<{ count: number; window_start: number }>();
-  let count = row?.count ?? 0;
-  let windowStart = row?.window_start ?? 0;
-  if (!row || t - windowStart > windowMs) {
-    count = 0;
-    windowStart = t;
-  }
-  count += 1;
-  await db
     .prepare(
-      "INSERT INTO rate_limit (bucket, count, window_start) VALUES (?, ?, ?) ON CONFLICT(bucket) DO UPDATE SET count = excluded.count, window_start = excluded.window_start"
+      `INSERT INTO rate_limit (bucket, count, window_start, locked_until)
+       VALUES (?1, 1, ?2, 0)
+       ON CONFLICT(bucket) DO UPDATE SET
+         count        = CASE WHEN ?2 - rate_limit.window_start > ?3 THEN 1 ELSE rate_limit.count + 1 END,
+         window_start = CASE WHEN ?2 - rate_limit.window_start > ?3 THEN ?2 ELSE rate_limit.window_start END
+       RETURNING count, window_start`
     )
-    .bind(bucket, count, windowStart)
-    .run();
+    .bind(bucket, t, windowMs)
+    .first<{ count: number; window_start: number }>();
+  const count = Number(row?.count ?? 1);
+  const windowStart = Number(row?.window_start ?? t);
   if (count > limit) return { ok: false, retryAfter: Math.ceil((windowStart + windowMs - t) / 1000) };
   return { ok: true, retryAfter: 0 };
 }
@@ -117,11 +115,22 @@ app.get("/api/health", (c) => c.json(ok({ status: "up" })));
    served back here. Avoids needing R2. */
 
 const MAX_UPLOAD = 1_600_000; // ~1.6MB after client-side resize
+// Raster types only. SVG is deliberately excluded (an uploaded SVG served from
+// the CMS origin would be a stored-XSS / script vector).
+const UPLOAD_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 
 app.post("/api/upload", async (c) => {
-  const mime = c.req.header("content-type") || "";
-  if (!mime.startsWith("image/")) {
-    return c.json({ ok: false, error: "Only image files are allowed." }, 400);
+  const mime = (c.req.header("content-type") || "").split(";")[0].trim().toLowerCase();
+  if (!UPLOAD_TYPES.has(mime)) {
+    return c.json({ ok: false, error: "Only JPEG, PNG, WebP, or GIF images are allowed." }, 400);
+  }
+  // Per-IP rate limit so this public storage endpoint cannot be flooded.
+  const ip = clientIp(c.req.raw);
+  const rl = await rateLimit(c.env.DB, `upload:${ip}`, 60, 60 * 60 * 1000);
+  if (!rl.ok) {
+    return c.json({ ok: false, error: "Too many uploads. Please try again later." }, 429, {
+      "Retry-After": String(rl.retryAfter),
+    });
   }
   const buf = await c.req.arrayBuffer();
   if (buf.byteLength === 0) return c.json({ ok: false, error: "Empty file." }, 400);
@@ -341,13 +350,11 @@ admin.post("/login-attempt", async (c) => {
   const MAX_FAILS = 8;
   const LOCK = 15 * 60 * 1000;
 
-  const row = await c.env.DB.prepare(
-    "SELECT count, window_start, locked_until FROM rate_limit WHERE bucket = ?"
-  )
+  const existing = await c.env.DB.prepare("SELECT locked_until FROM rate_limit WHERE bucket = ?")
     .bind(bucket)
-    .first<{ count: number; window_start: number; locked_until: number }>();
+    .first<{ locked_until: number }>();
 
-  const lockedUntil = row?.locked_until ?? 0;
+  const lockedUntil = Number(existing?.locked_until ?? 0);
   if (lockedUntil > t) {
     return c.json(ok({ blocked: true, retryAfter: Math.ceil((lockedUntil - t) / 1000) }));
   }
@@ -358,26 +365,41 @@ admin.post("/login-attempt", async (c) => {
   }
 
   if (result === "fail") {
-    let count = row?.count ?? 0;
-    let windowStart = row?.window_start ?? 0;
-    if (!row || t - windowStart > WINDOW) {
-      count = 0;
-      windowStart = t;
-    }
-    count += 1;
-    const blocked = count >= MAX_FAILS;
-    const newLock = blocked ? t + LOCK : 0;
-    await c.env.DB.prepare(
-      "INSERT INTO rate_limit (bucket, count, window_start, locked_until) VALUES (?, ?, ?, ?) ON CONFLICT(bucket) DO UPDATE SET count = excluded.count, window_start = excluded.window_start, locked_until = excluded.locked_until"
+    // Atomic increment + lock in a single statement (no read-modify-write race).
+    const updated = await c.env.DB.prepare(
+      `INSERT INTO rate_limit (bucket, count, window_start, locked_until)
+       VALUES (?1, 1, ?2, 0)
+       ON CONFLICT(bucket) DO UPDATE SET
+         window_start = CASE WHEN ?2 - rate_limit.window_start > ?3 THEN ?2 ELSE rate_limit.window_start END,
+         count        = CASE WHEN ?2 - rate_limit.window_start > ?3 THEN 1 ELSE rate_limit.count + 1 END,
+         locked_until = CASE WHEN (CASE WHEN ?2 - rate_limit.window_start > ?3 THEN 1 ELSE rate_limit.count + 1 END) >= ?4
+                             THEN ?2 + ?5 ELSE 0 END
+       RETURNING count, locked_until`
     )
-      .bind(bucket, count, windowStart, newLock)
-      .run();
+      .bind(bucket, t, WINDOW, MAX_FAILS, LOCK)
+      .first<{ count: number; locked_until: number }>();
+    const count = Number(updated?.count ?? 1);
+    const newLock = Number(updated?.locked_until ?? 0);
+    const blocked = count >= MAX_FAILS;
     return c.json(
-      ok({ blocked, retryAfter: blocked ? Math.ceil(LOCK / 1000) : 0, remaining: Math.max(0, MAX_FAILS - count) })
+      ok({
+        blocked,
+        retryAfter: blocked ? Math.ceil((newLock - t) / 1000) : 0,
+        remaining: Math.max(0, MAX_FAILS - count),
+      })
     );
   }
 
   return c.json(ok({ blocked: false }));
+});
+
+/* Verify a Turnstile token for the admin login (the site holds the secret only
+   for the CMS admin API, not the Turnstile secret, so it asks the CMS to
+   verify). Returns { success } — true when Turnstile is not configured. */
+admin.post("/turnstile-verify", async (c) => {
+  const b = await c.req.json().catch(() => ({}));
+  const success = await verifyTurnstile(c.env.TURNSTILE_SECRET, str(b.token, 4000), str(b.ip, 64));
+  return c.json(ok({ success }));
 });
 
 // Reviews

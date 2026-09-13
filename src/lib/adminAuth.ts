@@ -8,8 +8,17 @@ import { cookies } from "next/headers";
 export const ADMIN_COOKIE = "ng_admin";
 export const ADMIN_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 
+/** True only when the session-signing secret is configured. */
+export function adminConfigured(): boolean {
+  return !!process.env.CMS_ADMIN_SECRET;
+}
+
 function signingKey(): Uint8Array {
-  const secret = process.env.CMS_ADMIN_SECRET || "insecure-dev-signing-key";
+  const secret = process.env.CMS_ADMIN_SECRET;
+  // Fail-closed: never fall back to a shared/constant key (that would make every
+  // admin session forgeable). Callers gate on adminConfigured() first, so this
+  // only throws on genuine misuse.
+  if (!secret) throw new Error("CMS_ADMIN_SECRET is not set; admin auth is disabled.");
   return new TextEncoder().encode(secret);
 }
 
@@ -35,6 +44,7 @@ export async function makeSessionToken(): Promise<string> {
 }
 
 async function verify(token: string | undefined): Promise<boolean> {
+  if (!adminConfigured()) return false; // fail-closed when the signing key is absent
   if (!token) return false;
   const parts = token.split(".");
   if (parts.length !== 3) return false;
