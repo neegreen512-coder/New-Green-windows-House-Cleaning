@@ -30,9 +30,9 @@ const TURNSTILE = "https://challenges.cloudflare.com";
 const GTM = "https://www.googletagmanager.com";
 const CF_INSIGHTS = "https://static.cloudflareinsights.com";
 const ANALYTICS_CONNECT =
-  "https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://region1.google-analytics.com https://stats.g.doubleclick.net https://*.g.doubleclick.net https://cloudflareinsights.com";
+  "https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://region1.google-analytics.com https://stats.g.doubleclick.net https://*.g.doubleclick.net https://cloudflareinsights.com https://www.google.com https://www.googleadservices.com";
 const ANALYTICS_IMG =
-  "https://www.google-analytics.com https://*.google-analytics.com https://*.g.doubleclick.net https://www.google.com";
+  "https://www.google-analytics.com https://*.google-analytics.com https://*.g.doubleclick.net https://www.google.com https://www.googleadservices.com https://googleads.g.doubleclick.net";
 
 const csp = [
   `default-src 'self'`,
