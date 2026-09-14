@@ -1,6 +1,9 @@
 # Copy this file to `.dev.vars` to test admin auth locally (optional).
-# If unset locally, the admin API is open so you can develop without a secret.
 ADMIN_SECRET=local-dev-secret
+
+# The admin API now FAILS CLOSED when ADMIN_SECRET is unset. To run local dev
+# without a secret (open admin), set this to "1". NEVER set it in production.
+ALLOW_INSECURE_ADMIN=1
 
 # Cloudflare Turnstile secret key (server-side). Pairs with the site's
 # NEXT_PUBLIC_TURNSTILE_SITE_KEY. If unset, token verification is skipped

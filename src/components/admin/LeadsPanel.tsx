@@ -20,7 +20,12 @@ function StatusPill({ status }: { status: string }) {
 }
 
 function csvCell(v: unknown) {
-  return `"${String(v ?? "").replace(/"/g, '""')}"`;
+  let s = String(v ?? "");
+  // Neutralize spreadsheet formula injection: a cell whose first char is = + - @
+  // or a leading tab/CR is executed as a formula by Excel/Sheets. Public form
+  // input flows into this export, so prefix such values with a quote (OWASP).
+  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+  return `"${s.replace(/"/g, '""')}"`;
 }
 function downloadCsv(name: string, rows: unknown[][]) {
   const content = rows.map((r) => r.map(csvCell).join(",")).join("\r\n");

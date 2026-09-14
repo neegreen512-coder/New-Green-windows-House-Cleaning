@@ -8,6 +8,7 @@ import { Pricing } from "@/components/sections/Pricing";
 import { Testimonials } from "@/components/sections/Testimonials";
 import { FinalCta } from "@/components/sections/FinalCta";
 import { business, services, testimonials, areaNames } from "@/lib/site";
+import { jsonLdScript } from "@/lib/jsonld";
 
 export default function HomePage() {
   const jsonLd = {
@@ -64,7 +65,7 @@ export default function HomePage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }}
       />
       <Hero />
       <Services />

@@ -6,6 +6,7 @@ import { CtaBand } from "@/components/CtaBand";
 import { blogPosts, getBlogPost } from "@/lib/blog";
 import { getPost } from "@/lib/cms";
 import { business } from "@/lib/site";
+import { jsonLdScript } from "@/lib/jsonld";
 
 export const revalidate = 60;
 
@@ -126,7 +127,7 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }} />
 
       <article>
         <section className="relative overflow-hidden">

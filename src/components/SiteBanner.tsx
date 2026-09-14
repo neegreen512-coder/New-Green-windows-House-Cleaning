@@ -61,10 +61,13 @@ export function SiteBanner() {
     setDismissed(true);
   }
 
+  // Only allow safe URL schemes for the admin-set banner link (block javascript:).
+  const safeHref = /^(https?:\/\/|\/|mailto:|tel:)/i.test(banner.href || "") ? banner.href : "";
+
   const Inner = (
     <span className="truncate">
       {banner.text}
-      {banner.href && banner.label && (
+      {safeHref && banner.label && (
         <span className="ml-2 font-semibold underline underline-offset-2">{banner.label}</span>
       )}
     </span>
@@ -75,8 +78,8 @@ export function SiteBanner() {
       className="fixed inset-x-0 top-0 z-[60] flex items-center justify-center bg-brand-800 px-10 text-center text-[0.85rem] font-medium text-white"
       style={{ height: BAR_H }}
     >
-      {banner.href ? (
-        <Link href={banner.href} className="inline-flex min-w-0 items-center hover:text-brand-50">
+      {safeHref ? (
+        <Link href={safeHref} className="inline-flex min-w-0 items-center hover:text-brand-50">
           {Inner}
         </Link>
       ) : (

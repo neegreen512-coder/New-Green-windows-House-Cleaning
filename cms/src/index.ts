@@ -5,7 +5,22 @@ type Bindings = {
   DB: D1Database;
   ADMIN_SECRET?: string;
   TURNSTILE_SECRET?: string;
+  // Set to "1" ONLY for local dev to allow the admin API without a secret.
+  // Production must leave this unset so the admin gate fails closed.
+  ALLOW_INSECURE_ADMIN?: string;
 };
+
+// Constant-time string compare, so the admin-secret check does not leak length
+// or content via timing.
+function timingSafeEqual(a: string, b: string): boolean {
+  const enc = new TextEncoder();
+  const ba = enc.encode(a);
+  const bb = enc.encode(b);
+  if (ba.length !== bb.length) return false;
+  let diff = 0;
+  for (let i = 0; i < ba.length; i++) diff |= ba[i] ^ bb[i];
+  return diff === 0;
+}
 
 const app = new Hono<{ Bindings: Bindings }>();
 
@@ -118,6 +133,22 @@ const MAX_UPLOAD = 1_600_000; // ~1.6MB after client-side resize
 // Raster types only. SVG is deliberately excluded (an uploaded SVG served from
 // the CMS origin would be a stored-XSS / script vector).
 const UPLOAD_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
+// Hard cap on total media stored in D1, so this public endpoint cannot fill the
+// shared database (which would take down leads/reviews/everything).
+const MEDIA_MAX_BYTES = 200_000_000; // ~200MB
+const MEDIA_MAX_ROWS = 4000;
+
+// Verify the bytes actually match the declared image type (don't trust the
+// client Content-Type header), so arbitrary blobs can't be stored as "images".
+function magicOk(buf: ArrayBuffer, mime: string): boolean {
+  const b = new Uint8Array(buf.slice(0, 16));
+  const at = (sig: number[], off = 0) => sig.every((v, i) => b[off + i] === v);
+  if (mime === "image/jpeg") return at([0xff, 0xd8, 0xff]);
+  if (mime === "image/png") return at([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  if (mime === "image/gif") return at([0x47, 0x49, 0x46, 0x38]); // "GIF8"
+  if (mime === "image/webp") return at([0x52, 0x49, 0x46, 0x46]) && at([0x57, 0x45, 0x42, 0x50], 8); // RIFF....WEBP
+  return false;
+}
 
 app.post("/api/upload", async (c) => {
   const mime = (c.req.header("content-type") || "").split(";")[0].trim().toLowerCase();
@@ -135,6 +166,19 @@ app.post("/api/upload", async (c) => {
   const buf = await c.req.arrayBuffer();
   if (buf.byteLength === 0) return c.json({ ok: false, error: "Empty file." }, 400);
   if (buf.byteLength > MAX_UPLOAD) return c.json({ ok: false, error: "Image is too large." }, 413);
+  if (!magicOk(buf, mime))
+    return c.json({ ok: false, error: "That file does not look like a valid image." }, 400);
+
+  // Global storage cap: never let uploads fill the shared D1 database.
+  const stats = await c.env.DB.prepare(
+    "SELECT COUNT(*) AS n, COALESCE(SUM(LENGTH(data)), 0) AS bytes FROM media"
+  ).first<{ n: number; bytes: number }>();
+  if (
+    Number(stats?.n ?? 0) >= MEDIA_MAX_ROWS ||
+    Number(stats?.bytes ?? 0) + buf.byteLength > MEDIA_MAX_BYTES
+  ) {
+    return c.json({ ok: false, error: "Storage limit reached. Please contact us." }, 507);
+  }
 
   const id = crypto.randomUUID().replace(/-/g, "");
   await c.env.DB.prepare("INSERT INTO media (id, mime, data) VALUES (?, ?, ?)")
@@ -154,6 +198,8 @@ app.get("/media/:id", async (c) => {
     headers: {
       "Content-Type": row.mime || "image/jpeg",
       "Cache-Control": "public, max-age=31536000, immutable",
+      "X-Content-Type-Options": "nosniff",
+      "Content-Security-Policy": "default-src 'none'; sandbox",
     },
   });
 });
@@ -331,7 +377,13 @@ const admin = new Hono<{ Bindings: Bindings }>();
 
 admin.use("*", async (c, next) => {
   const secret = c.env.ADMIN_SECRET;
-  if (secret && c.req.header("x-cms-secret") !== secret) {
+  if (!secret) {
+    // Fail closed: a missing secret must NOT open the admin API. The open path
+    // is an explicit local-dev opt-in only, never the default when unset.
+    if (c.env.ALLOW_INSECURE_ADMIN !== "1") {
+      return c.json({ ok: false, error: "Admin is not configured." }, 503);
+    }
+  } else if (!timingSafeEqual(c.req.header("x-cms-secret") || "", secret)) {
     return c.json({ ok: false, error: "Unauthorized" }, 401);
   }
   await next();
