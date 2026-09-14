@@ -181,6 +181,7 @@ app.post("/api/upload", async (c) => {
   }
 
   const id = crypto.randomUUID().replace(/-/g, "");
+  // media.created_at defaults to datetime('now') (migration 0004).
   await c.env.DB.prepare("INSERT INTO media (id, mime, data) VALUES (?, ?, ?)")
     .bind(id, mime, buf)
     .run();
