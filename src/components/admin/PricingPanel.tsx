@@ -135,6 +135,28 @@ export function PricingPanel() {
               }}
               className="card p-5"
             >
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-line pb-3">
+                <div className="min-w-0">
+                  <span className="font-[family-name:var(--font-bricolage)] text-[1.05rem] font-semibold text-ink">
+                    {p.name || "Untitled package"}
+                  </span>
+                  {p.price ? <span className="ml-2 text-sm font-medium text-brand-700">{p.price}</span> : null}
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {p.featured ? (
+                    <span className="rounded-full bg-accent/15 px-2 py-0.5 font-[family-name:var(--font-geist-mono)] text-[0.58rem] uppercase tracking-[0.14em] text-accent">
+                      Featured
+                    </span>
+                  ) : null}
+                  <span
+                    className={`rounded-full px-2 py-0.5 font-[family-name:var(--font-geist-mono)] text-[0.58rem] uppercase tracking-[0.14em] ${
+                      p.active ? "bg-brand-50 text-brand-700" : "bg-surface-muted text-muted"
+                    }`}
+                  >
+                    {p.active ? "Live" : "Hidden"}
+                  </span>
+                </div>
+              </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <Field label="Name">
                   <input name="name" defaultValue={p.name} className={fc} />

@@ -7,21 +7,18 @@ import {
   Star,
   Tray,
   Tag,
-  Images,
+  ChatCircle,
   PencilSimple,
-  SlidersHorizontal,
   SignOut,
 } from "@phosphor-icons/react/dist/ssr";
 import { ReviewsPanel } from "./ReviewsPanel";
 import { LeadsPanel } from "./LeadsPanel";
 import { PricingPanel } from "./PricingPanel";
 import { BlogPanel } from "./BlogPanel";
-import { GalleryPanel } from "./GalleryPanel";
-import { ContentPanel } from "./ContentPanel";
 import { LogoMark } from "@/components/Brand";
 import { adminApi } from "@/lib/adminClient";
 
-type Counts = { newLeads: number; pending: number; reviews: number; posts: number; gallery: number };
+type Counts = { newLeads: number; pending: number; reviews: number; posts: number };
 type IconType = ComponentType<{ className?: string; weight?: "regular" | "fill"; "aria-hidden"?: boolean }>;
 
 const TABS: {
@@ -31,45 +28,91 @@ const TABS: {
   icon: IconType;
   badge?: keyof Counts;
 }[] = [
-  { id: "overview", label: "Overview", desc: "A quick snapshot of your site.", icon: SquaresFour },
-  { id: "reviews", label: "Reviews", desc: "Approve, feature, and edit customer reviews.", icon: Star, badge: "pending" },
+  { id: "overview", label: "Overview", desc: "A quick snapshot of your business.", icon: SquaresFour },
   { id: "leads", label: "Leads", desc: "Quote requests and contact messages.", icon: Tray, badge: "newLeads" },
+  { id: "reviews", label: "Reviews", desc: "Approve, feature, and edit customer reviews.", icon: Star, badge: "pending" },
   { id: "pricing", label: "Pricing", desc: "Your service packages and prices.", icon: Tag },
-  { id: "gallery", label: "Gallery", desc: "Before and after photos of real jobs.", icon: Images },
   { id: "blog", label: "Blog", desc: "Write and manage your blog posts.", icon: PencilSimple },
-  { id: "site", label: "Site content", desc: "Promo banner, business details, FAQ, and areas.", icon: SlidersHorizontal },
 ];
 
-function Stat({ value, label, accent }: { value: number | string; label: string; accent?: boolean }) {
-  return (
-    <div className="card p-5 transition-shadow hover:shadow-[var(--shadow-sm)]">
+function Stat({
+  value,
+  label,
+  icon: Icon,
+  accent,
+  onClick,
+}: {
+  value: number | string;
+  label: string;
+  icon: IconType;
+  accent?: boolean;
+  onClick?: () => void;
+}) {
+  const cls = `card p-5 text-left ${onClick ? "transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)]" : ""}`;
+  const inner = (
+    <>
+      <div className="flex items-center justify-between">
+        <span
+          className={`grid h-9 w-9 place-items-center rounded-xl ${
+            accent ? "bg-accent/15 text-accent" : "bg-brand-50 text-brand-700"
+          }`}
+        >
+          <Icon className="h-[1.1rem] w-[1.1rem]" weight="fill" aria-hidden />
+        </span>
+        {accent ? (
+          <span className="font-[family-name:var(--font-geist-mono)] text-[0.58rem] uppercase tracking-[0.16em] text-accent">
+            Needs you
+          </span>
+        ) : null}
+      </div>
       <div
-        className={`font-[family-name:var(--font-bricolage)] text-[2rem] font-bold leading-none ${
+        className={`mt-3 font-[family-name:var(--font-bricolage)] text-[2rem] font-bold leading-none ${
           accent ? "text-accent" : "text-brand-800"
         }`}
       >
         {value}
       </div>
-      <div className="mt-2 text-[0.85rem] leading-snug text-muted">{label}</div>
-    </div>
+      <div className="mt-1.5 text-[0.85rem] leading-snug text-muted">{label}</div>
+    </>
+  );
+  return onClick ? (
+    <button type="button" onClick={onClick} className={`${cls} w-full`}>
+      {inner}
+    </button>
+  ) : (
+    <div className={cls}>{inner}</div>
   );
 }
 
 function Overview({ counts, go }: { counts: Counts | null; go: (t: string) => void }) {
   if (!counts) return <p className="text-sm text-muted">Loading your summary...</p>;
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
-        <button type="button" onClick={() => go("leads")} className="text-left">
-          <Stat value={counts.newLeads} label="New leads to review" accent={counts.newLeads > 0} />
-        </button>
-        <button type="button" onClick={() => go("reviews")} className="text-left">
-          <Stat value={counts.pending} label="Reviews awaiting approval" accent={counts.pending > 0} />
-        </button>
-        <Stat value={counts.reviews} label="Total reviews" />
-        <Stat value={counts.posts || "—"} label="Blog posts in the CMS" />
-        <Stat value={counts.gallery || "—"} label="Gallery items" />
+    <div className="space-y-7">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <Stat icon={Tray} value={counts.newLeads} label="New leads to review" accent={counts.newLeads > 0} onClick={() => go("leads")} />
+        <Stat icon={Star} value={counts.pending} label="Reviews awaiting approval" accent={counts.pending > 0} onClick={() => go("reviews")} />
+        <Stat icon={ChatCircle} value={counts.reviews} label="Approved reviews" />
+        <Stat icon={PencilSimple} value={counts.posts || "—"} label="Blog posts" />
       </div>
+
+      <div className="card p-5">
+        <h3 className="text-sm font-semibold text-ink">Quick actions</h3>
+        <div className="mt-3.5 flex flex-wrap gap-2.5">
+          <button type="button" onClick={() => go("leads")} className="btn btn-secondary btn-sm">
+            View new leads
+          </button>
+          <button type="button" onClick={() => go("reviews")} className="btn btn-secondary btn-sm">
+            Moderate reviews
+          </button>
+          <button type="button" onClick={() => go("pricing")} className="btn btn-secondary btn-sm">
+            Edit pricing
+          </button>
+          <button type="button" onClick={() => go("blog")} className="btn btn-secondary btn-sm">
+            Write a post
+          </button>
+        </div>
+      </div>
+
       <p className="text-sm leading-relaxed text-muted">
         Reviews go live once you approve them, and every quote and message is kept as a permanent
         record under Leads. Anything you change here appears on the site within about a minute.
@@ -89,9 +132,8 @@ export function AdminDashboard() {
       adminApi.listQuotes(),
       adminApi.listMessages(),
       adminApi.listPosts(),
-      adminApi.listGallery(),
     ])
-      .then(([reviews, quotes, messages, posts, gallery]) =>
+      .then(([reviews, quotes, messages, posts]) =>
         setCounts({
           newLeads:
             quotes.filter((q) => q.status === "new").length +
@@ -99,10 +141,9 @@ export function AdminDashboard() {
           pending: reviews.filter((r) => r.status === "pending").length,
           reviews: reviews.length,
           posts: posts.length,
-          gallery: gallery.length,
         })
       )
-      .catch(() => setCounts({ newLeads: 0, pending: 0, reviews: 0, posts: 0, gallery: 0 }));
+      .catch(() => setCounts({ newLeads: 0, pending: 0, reviews: 0, posts: 0 }));
   }, []);
 
   async function signOut() {
@@ -186,12 +227,10 @@ export function AdminDashboard() {
 
         <div className="mt-7">
           {tab === "overview" && <Overview counts={counts} go={setTab} />}
-          {tab === "reviews" && <ReviewsPanel />}
           {tab === "leads" && <LeadsPanel />}
+          {tab === "reviews" && <ReviewsPanel />}
           {tab === "pricing" && <PricingPanel />}
-          {tab === "gallery" && <GalleryPanel />}
           {tab === "blog" && <BlogPanel />}
-          {tab === "site" && <ContentPanel />}
         </div>
       </main>
     </div>

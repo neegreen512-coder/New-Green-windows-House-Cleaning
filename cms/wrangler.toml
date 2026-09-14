@@ -11,6 +11,10 @@ database_name = "newgreen-db"
 database_id = "96b562af-fca6-4897-9bfa-dc217c53482a"
 migrations_dir = "migrations"
 
+# Daily housekeeping: prune stale rate-limit rows + orphaned media (see cleanup()).
+[triggers]
+crons = ["0 4 * * *"]
+
 # ADMIN_SECRET is set as a Worker secret in production:
 #   wrangler secret put ADMIN_SECRET
 # Locally it is read from a .dev.vars file (see .dev.vars.example).

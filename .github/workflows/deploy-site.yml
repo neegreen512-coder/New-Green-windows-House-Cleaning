@@ -31,6 +31,16 @@ jobs:
       - name: Install deps
         run: pnpm install --frozen-lockfile
 
+      # Guard: .env.production is committed (public repo), so it must never hold a
+      # server secret. Fail the build if any non-NEXT_PUBLIC_ key appears.
+      - name: Guard .env.production (public values only)
+        run: |
+          if [ -f .env.production ] && grep -qvE '^[[:space:]]*(#|$|NEXT_PUBLIC_)' .env.production; then
+            echo "::error::.env.production may only contain NEXT_PUBLIC_* values (found a non-public key)."
+            grep -nE '^[[:space:]]*(#|$|NEXT_PUBLIC_)' -v .env.production || true
+            exit 1
+          fi
+
       - name: Build and deploy (OpenNext)
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

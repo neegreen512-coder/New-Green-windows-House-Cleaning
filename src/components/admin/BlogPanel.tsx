@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { PencilSimple } from "@phosphor-icons/react/dist/ssr";
 import { adminApi, type AdminPost } from "@/lib/adminClient";
 import { uploadImage } from "@/lib/cms";
 import { blogPosts } from "@/lib/blog";
@@ -184,10 +185,27 @@ export function BlogPanel() {
               }}
               className="card p-5"
             >
-              <div className="mb-3 flex items-center justify-between">
-                <span className="label-mono text-muted">/blog/{p.slug}</span>
-                <span className={`label-mono ${p.published ? "text-brand-700" : "text-[var(--color-warning)]"}`}>
-                  {p.published ? "published" : "draft"}
+              <div className="mb-4 flex items-center gap-3 border-b border-line pb-3">
+                {p.cover ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={p.cover} alt="" className="h-10 w-16 shrink-0 rounded-md object-cover ring-1 ring-line" />
+                ) : (
+                  <span className="grid h-10 w-16 shrink-0 place-items-center rounded-md bg-surface-muted text-muted">
+                    <PencilSimple className="h-4 w-4" aria-hidden />
+                  </span>
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-semibold text-ink">{p.title || "Untitled"}</div>
+                  <div className="truncate font-[family-name:var(--font-geist-mono)] text-[0.65rem] text-muted">
+                    /blog/{p.slug}
+                  </div>
+                </div>
+                <span
+                  className={`rounded-full px-2 py-0.5 font-[family-name:var(--font-geist-mono)] text-[0.58rem] uppercase tracking-[0.14em] ${
+                    p.published ? "bg-brand-50 text-brand-700" : "bg-surface-muted text-[var(--color-warning)]"
+                  }`}
+                >
+                  {p.published ? "Live" : "Draft"}
                 </span>
               </div>
               <PostFields p={p} />

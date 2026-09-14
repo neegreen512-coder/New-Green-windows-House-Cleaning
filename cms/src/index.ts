@@ -796,4 +796,34 @@ function safeJson(v: unknown): string[] {
   }
 }
 
-export default app;
+/* --------------------------------------------------------------- Cron cleanup
+   Runs on a schedule (see [triggers] in wrangler.toml). Bounds the two tables
+   that would otherwise grow forever: stale rate-limit counters, and orphaned
+   media uploads (older than a 2-day grace and referenced by nothing). */
+async function cleanup(env: Bindings) {
+  const now = Date.now();
+  // Prune rate-limit rows whose window has elapsed and which are not locked.
+  await env.DB.prepare("DELETE FROM rate_limit WHERE locked_until < ? AND window_start < ?")
+    .bind(now, now - 60 * 60 * 1000)
+    .run();
+  // Remove orphaned media older than the grace period (referenced nowhere).
+  await env.DB.prepare(
+    `DELETE FROM media
+     WHERE created_at < datetime('now', '-2 days')
+       AND id NOT IN (
+         SELECT m.id FROM media m WHERE
+              EXISTS (SELECT 1 FROM reviews r WHERE r.avatar LIKE '%' || m.id || '%' OR r.photos LIKE '%' || m.id || '%')
+           OR EXISTS (SELECT 1 FROM pricing p WHERE p.image LIKE '%' || m.id || '%')
+           OR EXISTS (SELECT 1 FROM gallery g WHERE g.before_url LIKE '%' || m.id || '%' OR g.after_url LIKE '%' || m.id || '%')
+           OR EXISTS (SELECT 1 FROM posts po WHERE po.cover LIKE '%' || m.id || '%')
+           OR EXISTS (SELECT 1 FROM content c WHERE c.value LIKE '%' || m.id || '%')
+       )`
+  ).run();
+}
+
+export default {
+  fetch: app.fetch,
+  scheduled: (_event: ScheduledEvent, env: Bindings, ctx: ExecutionContext) => {
+    ctx.waitUntil(cleanup(env));
+  },
+};
